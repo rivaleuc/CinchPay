@@ -6,7 +6,6 @@ import { isAddress } from "viem";
 import { useAccount } from "wagmi";
 import {
   ArrowDownRight,
-  ArrowUpRight,
   Copy,
   Check,
   Download,
@@ -14,9 +13,11 @@ import {
   RefreshCw,
   Search,
   AlertCircle,
+  Undo2,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { Pill } from "@/components/cinch/primitives";
+import { RefundModal, type RefundTarget } from "@/components/RefundModal";
 import { EXPLORER, PROCESSOR_ADDRESS, TOKENS } from "@/lib/contract";
 import { usePayments, type PaymentLog } from "@/lib/usePayments";
 import { formatAmount, shortAddr, timeAgo, bytes32ToShortString } from "@/lib/format";
@@ -45,6 +46,7 @@ export default function MerchantPage() {
   const [query, setQuery] = useState("");
   const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
   const [range, setRange] = useState<Range>("30D");
+  const [refundTarget, setRefundTarget] = useState<RefundTarget | null>(null);
 
   const { payments, loading, error } = usePayments(valid ? merchant : undefined, refreshKey);
 
@@ -322,10 +324,33 @@ export default function MerchantPage() {
           ) : filtered.length === 0 ? (
             <NoMatches onClear={() => { setQuery(""); setTokenFilter("all"); }} />
           ) : (
-            <PaymentsTable payments={filtered} />
+            <PaymentsTable
+              payments={filtered}
+              canRefund={isOwn}
+              onRefund={(p) => {
+                const tk = tokenMeta(p.token);
+                setRefundTarget({
+                  paymentId: p.paymentId,
+                  customer: p.payer,
+                  token: p.token,
+                  tokenSymbol: tk.symbol,
+                  tokenDecimals: tk.decimals,
+                  originalAmount: p.grossAmount,
+                });
+              }}
+            />
           )}
         </div>
       </section>
+
+      {refundTarget && merchant && (
+        <RefundModal
+          merchant={merchant}
+          target={refundTarget}
+          onClose={() => setRefundTarget(null)}
+          onSuccess={() => setRefreshKey((k) => k + 1)}
+        />
+      )}
 
       <Footer />
     </>
@@ -342,17 +367,25 @@ function Kpi({ label, value, sub }: { label: string; value: string; sub: string 
   );
 }
 
-function PaymentsTable({ payments }: { payments: PaymentLog[] }) {
+function PaymentsTable({
+  payments,
+  canRefund,
+  onRefund,
+}: {
+  payments: PaymentLog[];
+  canRefund?: boolean;
+  onRefund?: (p: PaymentLog) => void;
+}) {
   return (
     <div className="overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr className="text-[11px] uppercase tracking-wider text-[var(--fg-muted)] border-b border-[var(--border)]">
-            <th className="text-left font-medium px-6 py-3">Status</th>
-            <th className="text-left font-medium px-6 py-3">Customer</th>
-            <th className="text-left font-medium px-6 py-3">Order</th>
-            <th className="text-left font-medium px-6 py-3">Time</th>
-            <th className="text-right font-medium px-6 py-3">Amount</th>
+            <th className="text-left font-semibold px-6 py-3">Status</th>
+            <th className="text-left font-semibold px-6 py-3">Customer</th>
+            <th className="text-left font-semibold px-6 py-3">Order</th>
+            <th className="text-left font-semibold px-6 py-3">Time</th>
+            <th className="text-right font-semibold px-6 py-3">Amount</th>
             <th className="px-6 py-3" />
           </tr>
         </thead>
@@ -363,10 +396,10 @@ function PaymentsTable({ payments }: { payments: PaymentLog[] }) {
             return (
               <tr
                 key={p.txHash + p.paymentId}
-                className="row-hover border-b border-[var(--border)] last:border-0"
+                className="row-hover group border-b border-[var(--border)] last:border-0"
               >
                 <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1.5 text-xs text-[var(--fg)]">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--fg)]">
                     <ArrowDownRight className="h-3 w-3 text-[var(--accent)]" />
                     Settled
                   </span>
@@ -385,14 +418,26 @@ function PaymentsTable({ payments }: { payments: PaymentLog[] }) {
                   <span className="text-[10px] text-[var(--fg-muted)]">{t.symbol}</span>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <a
-                    href={`${EXPLORER}/tx/${p.txHash}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--fg-muted)] hover:text-[var(--fg)] hover:border-[var(--border-strong)] btn-anim"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
+                  <div className="inline-flex items-center gap-1.5">
+                    {canRefund && onRefund && (
+                      <button
+                        onClick={() => onRefund(p)}
+                        className="inline-flex h-7 items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 text-[11px] font-semibold text-[var(--fg-muted)] hover:text-[var(--accent)] hover:border-[var(--accent)]/40 hover:bg-[var(--accent-soft)] btn-anim opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Refund this payment"
+                      >
+                        <Undo2 className="h-3 w-3" />
+                        Refund
+                      </button>
+                    )}
+                    <a
+                      href={`${EXPLORER}/tx/${p.txHash}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--fg-muted)] hover:text-[var(--fg)] hover:border-[var(--border-strong)] btn-anim"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
                 </td>
               </tr>
             );

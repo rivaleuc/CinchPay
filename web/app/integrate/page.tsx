@@ -11,6 +11,7 @@ const sections = [
   { id: "checkout", label: "Embed iframe" },
   { id: "events", label: "Modal & events" },
   { id: "returnurl", label: "Return URL" },
+  { id: "webhooks", label: "Self-hosted webhooks" },
   { id: "contract", label: "Contract" },
 ];
 
@@ -40,6 +41,47 @@ window.addEventListener("message", (event) => {
 });`;
 
 const returnUrlSnippet = `https://yoursite.com/thanks?order=ORD_8f2a&tx=0x9c2a4f01&status=success`;
+
+const webhookSnippet = `// Drop-in self-hosted webhook listener using Viem (Node, Next.js, Cloudflare Workers, etc.)
+// Watches Payment events for your merchant address on Arc Testnet and calls your handler.
+
+import { createPublicClient, http, parseAbiItem } from "viem";
+
+const arc = {
+  id: 5042002,
+  name: "Arc Testnet",
+  nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
+  rpcUrls: { default: { http: ["https://rpc.drpc.testnet.arc.network"] } },
+};
+
+const client = createPublicClient({ chain: arc, transport: http() });
+
+const PROCESSOR = "0xD4aBC1dbc1Bfa47B702a3F23Ec6f6EBF89D80A36";
+const MERCHANT = "0xYourMerchantAddress";
+
+const PAYMENT = parseAbiItem(
+  "event Payment(address indexed merchant, address indexed payer, address indexed token, uint256 grossAmount, uint256 netAmount, uint256 fee, bytes32 paymentId, bytes32 metadata)"
+);
+
+// Subscribe — invoked the instant a payment to your address is confirmed onchain.
+client.watchEvent({
+  address: PROCESSOR,
+  event: PAYMENT,
+  args: { merchant: MERCHANT },
+  onLogs: async (logs) => {
+    for (const log of logs) {
+      const { paymentId, netAmount, payer, metadata, token } = log.args;
+      // metadata is a bytes32 — decode your orderId however you packed it
+      console.log("Paid", { paymentId, netAmount, payer, token, txHash: log.transactionHash });
+
+      // Fulfill the order in your own backend
+      await fetch("https://yoursite.com/api/fulfill", {
+        method: "POST",
+        body: JSON.stringify({ paymentId, txHash: log.transactionHash }),
+      });
+    }
+  },
+});`;
 
 export default function Docs() {
   return (
@@ -138,6 +180,35 @@ export default function Docs() {
           <Section id="returnurl" eyebrow="Redirect flow" title="Return URL.">
             <p>When using the payment link method, customers are redirected with query parameters.</p>
             <CodeBlock language="text" code={returnUrlSnippet} />
+          </Section>
+
+          <Section
+            id="webhooks"
+            eyebrow="Real-time"
+            title="Self-hosted webhooks."
+          >
+            <p>
+              CinchPay doesn&apos;t run a webhook dispatcher — payments are public on-chain
+              events. Subscribe to <code className="rounded bg-[var(--surface)] px-1 py-0.5 font-mono text-xs">Payment</code>{" "}
+              events from your own backend and call any internal handler when funds settle.
+            </p>
+            <p className="text-sm">
+              This pattern works on Node, Next.js routes, Cloudflare Workers, Vercel
+              Functions, AWS Lambda — anywhere you can run a long-lived process or
+              a cron poll. Drop in the snippet below.
+            </p>
+            <CodeBlock language="ts" code={webhookSnippet} />
+            <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--paper)] p-4 text-sm text-[var(--fg-muted)]">
+              <p className="font-semibold text-[var(--fg)] text-xs uppercase tracking-wider">
+                Why self-hosted?
+              </p>
+              <ul className="mt-3 space-y-1.5 list-disc list-inside">
+                <li>No third-party in the critical path — your backend reads the chain directly.</li>
+                <li>No webhook secret to leak or rotate — events are signed by validators.</li>
+                <li>Replay any history at any time with the same code.</li>
+                <li>If your worker dies, no payments are lost — they&apos;re onchain forever.</li>
+              </ul>
+            </div>
           </Section>
 
           <Section id="contract" eyebrow="On-chain" title="Contract.">
