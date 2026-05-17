@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Check, Code2, Zap, Lock, GitBranch } from "lucide-react";
 import { Footer } from "@/components/Footer";
+import { HeroDemo } from "@/components/HeroDemo";
 
 export default function Landing() {
   return (
@@ -35,6 +36,9 @@ export default function Landing() {
           </Link>
         </div>
       </section>
+
+      {/* Live demo */}
+      <HeroDemo />
 
       {/* Stat band */}
       <section className="border-y border-[var(--border)] bg-[var(--paper)]">
