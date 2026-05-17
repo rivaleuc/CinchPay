@@ -8,17 +8,44 @@ import { ArrowRight, Check, ExternalLink, X } from "lucide-react";
 import { newPaymentId, shortAddr } from "@/lib/format";
 import { EXPLORER } from "@/lib/contract";
 
-const PRODUCTS = [
+const ALL_PRODUCTS = [
   { id: "tee", name: "Essential Tee", variant: "Charcoal · Medium", price: 28, image: "/products/tee.avif" },
   { id: "trainer", name: "Trainer 01", variant: "Off-white · 42", price: 128, image: "/products/shoe.avif" },
+  { id: "headphones", name: "Studio Headphones", variant: "Over-ear · 30h", price: 349, image: "/products/headphones.webp" },
+  { id: "case", name: "Field Case", variant: "Silicone · MagSafe", price: 24, image: "/products/case.avif" },
+  { id: "carry", name: "Daily Carry", variant: "Modular kit", price: 64, image: "/products/accessory.avif" },
+  { id: "whitening", name: "Pearl Whitening", variant: "7-day kit", price: 48, image: "/products/teeth.avif" },
 ];
+
+// 3 curated pairs, rotated every 2s
+const PAIRS: [number, number][] = [
+  [0, 1], // tee + trainer
+  [2, 3], // headphones + case
+  [4, 5], // carry + whitening
+];
+
+const ROTATE_MS = 2000;
 
 export function HeroDemoCard() {
   const { address, isConnected } = useAccount();
   const [checkout, setCheckout] = useState<{ paymentId: `0x${string}`; total: number } | null>(null);
   const [paid, setPaid] = useState<{ total: number; txHash: string } | null>(null);
+  const [pairIdx, setPairIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
 
-  const total = PRODUCTS.reduce((s, p) => s + p.price, 0);
+  // Rotate pairs every ROTATE_MS unless user is hovering / checkout open
+  useEffect(() => {
+    if (paused || checkout || paid) return;
+    const i = setInterval(
+      () => setPairIdx((p) => (p + 1) % PAIRS.length),
+      ROTATE_MS,
+    );
+    return () => clearInterval(i);
+  }, [paused, checkout, paid]);
+
+  const currentPair = PAIRS[pairIdx];
+  const products = currentPair.map((i) => ALL_PRODUCTS[i]);
+  const total = products.reduce((s, p) => s + p.price, 0);
 
   useEffect(() => {
     function onMsg(e: MessageEvent) {
@@ -38,7 +65,11 @@ export function HeroDemoCard() {
   }
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       {/* Sparkle backdrop */}
       <div className="absolute -inset-8 rounded-[2rem]">
         <div className="sparkle-field" />
@@ -71,12 +102,12 @@ export function HeroDemoCard() {
           </ChatBubble>
         </div>
 
-        {/* Product cards */}
+        {/* Product cards — auto-rotating pair */}
         <div className="mx-5 mt-5 rounded-xl border border-[var(--border)] bg-[var(--paper)] p-3">
-          <div className="grid grid-cols-2 gap-3">
-            {PRODUCTS.map((p) => (
+          <div key={pairIdx} className="grid grid-cols-2 gap-3 fade-in">
+            {products.map((p) => (
               <article
-                key={p.id}
+                key={`${pairIdx}-${p.id}`}
                 className="group rounded-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden transition-colors hover:border-[var(--border-strong)]"
               >
                 <div className="relative aspect-square overflow-hidden bg-[var(--surface)]">
@@ -89,15 +120,31 @@ export function HeroDemoCard() {
                   />
                 </div>
                 <div className="p-3">
-                  <div className="text-[13px] font-bold tracking-tight text-[var(--fg)]">
+                  <div className="text-[13px] font-bold tracking-tight text-[var(--fg)] truncate">
                     {p.name}
                   </div>
-                  <div className="text-[11px] text-[var(--fg-muted)]">{p.variant}</div>
+                  <div className="text-[11px] text-[var(--fg-muted)] truncate">{p.variant}</div>
                   <div className="mt-1.5 font-bold tabular text-[var(--fg)]">
                     ${p.price.toFixed(2)}
                   </div>
                 </div>
               </article>
+            ))}
+          </div>
+
+          {/* Pagination dots */}
+          <div className="mt-3 flex items-center justify-center gap-1.5">
+            {PAIRS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setPairIdx(i)}
+                aria-label={`Show pair ${i + 1}`}
+                className={`h-1 rounded-full transition-all ${
+                  i === pairIdx
+                    ? "w-6 bg-[var(--accent)]"
+                    : "w-1.5 bg-[var(--border-strong)] hover:bg-[var(--fg-muted)]"
+                }`}
+              />
             ))}
           </div>
 

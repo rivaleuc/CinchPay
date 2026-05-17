@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/cinch/primitives";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/cn";
 
 const NAV = [
@@ -47,8 +48,9 @@ export function Header() {
           })}
         </nav>
 
-        {/* CTA + wallet */}
-        <div className="hidden items-center gap-3 md:flex">
+        {/* CTA + wallet + theme */}
+        <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
           <ConnectButton
             chainStatus="none"
             accountStatus={{ smallScreen: "avatar", largeScreen: "address" }}
@@ -89,8 +91,9 @@ export function Header() {
               );
             })}
           </nav>
-          <div className="mt-3 pt-3 border-t border-[var(--border)]">
+          <div className="mt-3 pt-3 border-t border-[var(--border)] flex items-center justify-between gap-2">
             <ConnectButton chainStatus="none" accountStatus="address" showBalance={false} />
+            <ThemeToggle />
           </div>
         </div>
       )}
