@@ -21,6 +21,7 @@ import {
   type TokenKey,
 } from "@/lib/contract";
 import { formatAmount, newPaymentId, shortAddr, shortStringToBytes32 } from "@/lib/format";
+import { toastTxPending, toastTxSuccess, toastTxError } from "@/lib/toast-tx";
 import { Button, Logo } from "@/components/cinch/primitives";
 
 type Status = "idle" | "approving" | "paying" | "confirming" | "success" | "error";
@@ -113,17 +114,18 @@ function Checkout() {
   }, [paymentId]);
 
   useEffect(() => {
-    if (status === "approving" && isApproveConfirmed) {
+    if (status === "approving" && isApproveConfirmed && txHash) {
       refetchAllowance();
       setStatus("idle");
+      toastTxSuccess(`${token.symbol} approved`, txHash, { id: "tx-approve" });
       setTxHash(undefined);
-      toast.success("Approved", { description: "Now confirm the payment" });
     }
-  }, [isApproveConfirmed, status, refetchAllowance]);
+  }, [isApproveConfirmed, status, refetchAllowance, txHash, token.symbol]);
 
   useEffect(() => {
     if (status === "confirming" && isPayConfirmed && txHash) {
       setStatus("success");
+      toastTxSuccess("Payment confirmed", txHash, { id: "tx-pay" });
       if (typeof window !== "undefined" && window.parent !== window) {
         window.parent.postMessage(
           {
@@ -144,6 +146,7 @@ function Checkout() {
   async function handleApprove() {
     setError("");
     setStatus("approving");
+    toast.loading("Confirm approval in your wallet…", { id: "tx-approve" });
     try {
       const h = await writeContractAsync({
         address: token.address,
@@ -152,9 +155,12 @@ function Checkout() {
         args: [PROCESSOR_ADDRESS, amountWei],
       });
       setTxHash(h);
-    } catch (e: any) {
+      toastTxPending("Approval submitted", h, { id: "tx-approve" });
+    } catch (e: unknown) {
       setStatus("error");
-      setError(e?.shortMessage || e?.message || "Approval failed");
+      const err = e as { shortMessage?: string; message?: string };
+      setError(err?.shortMessage || err?.message || "Approval failed");
+      toastTxError("Approval failed", e, { id: "tx-approve" });
     }
   }
 
@@ -162,6 +168,7 @@ function Checkout() {
     if (!merchant) return;
     setError("");
     setStatus("paying");
+    toast.loading("Confirm payment in your wallet…", { id: "tx-pay" });
     try {
       const h = await writeContractAsync({
         address: PROCESSOR_ADDRESS,
@@ -171,9 +178,12 @@ function Checkout() {
       });
       setTxHash(h);
       setStatus("confirming");
-    } catch (e: any) {
+      toastTxPending("Settling onchain…", h, { id: "tx-pay" });
+    } catch (e: unknown) {
       setStatus("error");
-      setError(e?.shortMessage || e?.message || "Payment failed");
+      const err = e as { shortMessage?: string; message?: string };
+      setError(err?.shortMessage || err?.message || "Payment failed");
+      toastTxError("Payment failed", e, { id: "tx-pay" });
     }
   }
 
