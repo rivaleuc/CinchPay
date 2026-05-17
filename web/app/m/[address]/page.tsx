@@ -5,22 +5,25 @@ import { useMemo, useState } from "react";
 import { isAddress } from "viem";
 import { useAccount } from "wagmi";
 import {
+  ArrowDownRight,
+  ArrowUpRight,
   Copy,
   Check,
+  Download,
   ExternalLink,
   RefreshCw,
-  Wallet,
-  AlertCircle,
   Search,
-  Download,
+  AlertCircle,
 } from "lucide-react";
-import { Button, Label, Pill } from "@/components/cinch/primitives";
+import { Footer } from "@/components/Footer";
+import { Pill } from "@/components/cinch/primitives";
 import { EXPLORER, PROCESSOR_ADDRESS, TOKENS } from "@/lib/contract";
 import { usePayments, type PaymentLog } from "@/lib/usePayments";
 import { formatAmount, shortAddr, timeAgo, bytes32ToShortString } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
 type TokenFilter = "all" | "USDC" | "EURC";
+type Range = "24H" | "7D" | "30D" | "All";
 
 function tokenMeta(addr: `0x${string}`) {
   for (const t of Object.values(TOKENS)) {
@@ -41,6 +44,7 @@ export default function MerchantPage() {
   const [copied, setCopied] = useState(false);
   const [query, setQuery] = useState("");
   const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
+  const [range, setRange] = useState<Range>("30D");
 
   const { payments, loading, error } = usePayments(valid ? merchant : undefined, refreshKey);
 
@@ -66,26 +70,34 @@ export default function MerchantPage() {
 
   const totals = useMemo(() => {
     const acc: Record<string, { symbol: string; decimals: number; net: bigint; count: number }> = {};
+    let totalCount = 0;
+    let totalNetUsd = 0;
     for (const p of payments) {
       const t = tokenMeta(p.token);
       const k = `${t.symbol}|${t.decimals}`;
       if (!acc[k]) acc[k] = { symbol: t.symbol, decimals: t.decimals, net: 0n, count: 0 };
       acc[k].net += p.netAmount;
       acc[k].count += 1;
+      totalCount += 1;
+      totalNetUsd += Number(formatAmount(p.netAmount, t.decimals).replace(/,/g, ""));
     }
-    return Object.values(acc);
+    return {
+      entries: Object.values(acc),
+      totalCount,
+      avg: totalCount > 0 ? totalNetUsd / totalCount : 0,
+    };
   }, [payments]);
 
   if (!valid) {
     return (
       <div className="mx-auto max-w-md px-6 py-20">
-        <div className="rounded-2xl border border-red-500/20 bg-[#0c0e11] p-8 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10 ring-4 ring-red-500/5">
-            <AlertCircle className="h-5 w-5 text-red-400" />
+        <div className="rounded-xl border border-red-500/30 bg-red-500/[0.04] p-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10">
+            <AlertCircle className="h-5 w-5 text-red-600" />
           </div>
-          <h2 className="mt-4 text-lg font-medium tracking-tight text-zinc-100">Invalid address</h2>
-          <p className="mt-1.5 text-sm text-zinc-500">
-            <code className="font-mono text-zinc-400">{merchant}</code> isn&apos;t a valid Ethereum address.
+          <h2 className="mt-4 font-serif text-2xl">Invalid address</h2>
+          <p className="mt-1.5 text-sm text-[var(--fg-muted)]">
+            <code className="font-mono text-[var(--fg)]">{merchant}</code> isn&apos;t a valid Ethereum address.
           </p>
         </div>
       </div>
@@ -112,8 +124,8 @@ export default function MerchantPage() {
       "payer",
       "token",
       "token_symbol",
-      "gross_amount",
-      "net_amount",
+      "gross",
+      "net",
       "fee",
       "payment_id",
       "order_id",
@@ -139,14 +151,13 @@ export default function MerchantPage() {
     const csv = [headers, ...rows]
       .map((r) =>
         r
-          .map((cell) => {
-            const s = String(cell);
+          .map((c) => {
+            const s = String(c);
             return /[,"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
           })
           .join(","),
       )
       .join("\n");
-
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -156,222 +167,233 @@ export default function MerchantPage() {
     URL.revokeObjectURL(url);
   }
 
+  const settledUsdc =
+    totals.entries.find((e) => e.symbol === "USDC")?.net ?? 0n;
+  const usdcDecimals =
+    totals.entries.find((e) => e.symbol === "USDC")?.decimals ?? 6;
+
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      {/* Hero card */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-[#11141a] to-[#0c0e11]">
-        <div className="absolute inset-0 bg-dots opacity-50" />
-        <div className="relative flex flex-col gap-6 p-8 md:flex-row md:items-start md:justify-between">
-          <div className="min-w-0">
-            <Label>Merchant</Label>
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] shrink-0">
-                <Wallet className="h-4 w-4 text-zinc-300" />
-              </div>
-              <span className="break-all font-mono text-base text-zinc-100 md:text-lg">
-                {merchant}
-              </span>
-              {isOwn && (
-                <Pill className="border-[#5b8cff]/30 bg-[#5b8cff]/10 text-[#5b8cff]">You</Pill>
+    <>
+      <section className="mx-auto max-w-6xl px-6 pt-16 pb-10">
+        <div className="text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)]">
+          Merchant dashboard
+        </div>
+        <div className="mt-3 flex flex-wrap items-baseline justify-between gap-4">
+          <h1 className="editorial-display text-5xl">
+            {isOwn ? "Your storefront" : "Merchant"}
+          </h1>
+          <div className="flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--paper)] px-3 py-1.5 font-mono text-xs tabular hover:border-[var(--border-strong)] transition-colors">
+            <span>{shortAddr(merchant)}</span>
+            {isOwn && <Pill className="ml-1">You</Pill>}
+            <button
+              onClick={copy}
+              className="text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
+              title="Copy address"
+            >
+              {copied ? (
+                <Check className="h-3 w-3 text-[var(--accent)]" />
+              ) : (
+                <Copy className="h-3 w-3" />
               )}
-            </div>
-            <div className="mt-4 flex items-center gap-1.5 font-mono text-xs text-zinc-500">
-              <span>Contract: {shortAddr(PROCESSOR_ADDRESS)}</span>
-              <a
-                href={`${EXPLORER}/address/${PROCESSOR_ADDRESS}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-zinc-500 hover:text-zinc-200 transition-colors"
-              >
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Button onClick={copy}>
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              {copied ? "Copied!" : "Copy sample checkout link"}
-            </Button>
-            <Button variant="outline" onClick={refresh} disabled={loading}>
-              <RefreshCw className={`h-4 w-4 ${loading ? "spin-slow" : ""}`} />
-              Refresh
-            </Button>
+            </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Stats */}
-      <div className="mt-6 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.04] md:grid-cols-3">
-        <Stat label="Payments" value={payments.length.toString()} accent />
-        {totals[0] ? (
-          <Stat
-            label={`Received (${totals[0].symbol})`}
-            value={formatAmount(totals[0].net, totals[0].decimals)}
-            sub={`${totals[0].count} payment${totals[0].count === 1 ? "" : "s"}`}
+      {/* KPIs */}
+      <section className="mx-auto max-w-6xl px-6">
+        <div className="grid grid-cols-1 gap-px bg-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden md:grid-cols-4">
+          <Kpi
+            label="Settled (USDC)"
+            value={formatAmount(settledUsdc, usdcDecimals)}
+            sub="all-time"
           />
-        ) : (
-          <Stat label="Received (USDC)" value="0" sub="No payments" />
-        )}
-        {totals[1] ? (
-          <Stat
-            label={`Received (${totals[1].symbol})`}
-            value={formatAmount(totals[1].net, totals[1].decimals)}
-            sub={`${totals[1].count} payment${totals[1].count === 1 ? "" : "s"}`}
+          <Kpi label="Transactions" value={totals.totalCount.toString()} sub="all-time" />
+          <Kpi
+            label="Avg. ticket"
+            value={totals.avg > 0 ? `$${totals.avg.toFixed(2)}` : "—"}
+            sub="USDC"
           />
-        ) : (
-          <Stat label="Received (EURC)" value="0" sub="No payments" />
-        )}
-      </div>
+          <Kpi label="Avg. settle" value="<1s" sub="block to ack" />
+        </div>
+      </section>
 
-      {/* Filters + payments */}
-      <section className="mt-10">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-base font-medium tracking-tight text-zinc-100">Payments</h2>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.02] p-0.5">
-              {(["all", "USDC", "EURC"] as const).map((t) => (
+      {/* Volume placeholder + range */}
+      <section className="mx-auto max-w-6xl px-6 mt-10">
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--paper)] p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-[var(--fg-muted)]">
+                Volume
+              </div>
+              <div className="font-serif text-2xl mt-1">
+                {range === "24H"
+                  ? "Last 24 hours"
+                  : range === "7D"
+                    ? "Last 7 days"
+                    : range === "30D"
+                      ? "Last 30 days"
+                      : "All time"}
+              </div>
+            </div>
+            <div className="flex gap-1 text-xs">
+              {(["24H", "7D", "30D", "All"] as const).map((r) => (
                 <button
-                  key={t}
-                  onClick={() => setTokenFilter(t)}
+                  key={r}
+                  onClick={() => setRange(r)}
                   className={cn(
-                    "px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors",
-                    tokenFilter === t
-                      ? "bg-white/[0.08] text-zinc-100"
-                      : "text-zinc-500 hover:text-zinc-300",
+                    "rounded px-3 py-1 chip-anim",
+                    range === r
+                      ? "bg-[var(--primary)] text-[var(--primary-fg)]"
+                      : "text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--surface)]",
                   )}
                 >
-                  {t === "all" ? "All" : t}
+                  {r}
                 </button>
               ))}
             </div>
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search payer, order, tx…"
-                className="w-full sm:w-64 rounded-lg border border-white/[0.06] bg-white/[0.02] py-1.5 pl-8 pr-3 text-[12px] text-zinc-200 placeholder:text-zinc-600 focus:border-white/20 outline-none transition"
-              />
-            </div>
-            <button
-              onClick={exportCsv}
-              disabled={!filtered.length}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1.5 text-[11px] font-medium text-zinc-400 hover:text-zinc-100 hover:border-white/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              title="Export filtered payments as CSV"
-            >
-              <Download className="h-3 w-3" />
-              CSV
-            </button>
-            <button
-              onClick={refresh}
-              className="inline-flex items-center gap-1.5 text-[11px] text-zinc-500 hover:text-zinc-200 transition-colors px-1"
-            >
-              <RefreshCw className={`h-3 w-3 ${loading ? "spin-slow" : ""}`} />
-              Refresh
-            </button>
           </div>
+          <Chart payments={payments} />
         </div>
-
-        {error ? (
-          <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/[0.05] p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : loading && !payments.length ? (
-          <SkeletonTable />
-        ) : payments.length === 0 ? (
-          <EmptyState merchant={merchant} />
-        ) : filtered.length === 0 ? (
-          <NoMatches onClear={() => { setQuery(""); setTokenFilter("all"); }} />
-        ) : (
-          <PaymentsTable payments={filtered} />
-        )}
       </section>
-    </main>
+
+      {/* Table */}
+      <section className="mx-auto max-w-6xl px-6 mt-10 pb-24">
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--paper)]">
+          <div className="flex flex-col gap-3 border-b border-[var(--border)] px-6 py-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-[var(--fg-muted)]">
+                Activity
+              </div>
+              <div className="font-serif text-2xl mt-1">Recent payments</div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg)] p-0.5">
+                {(["all", "USDC", "EURC"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTokenFilter(t)}
+                    className={cn(
+                      "px-2.5 py-1 text-[11px] font-medium rounded chip-anim",
+                      tokenFilter === t
+                        ? "bg-[var(--surface)] text-[var(--fg)]"
+                        : "text-[var(--fg-muted)] hover:text-[var(--fg)]",
+                    )}
+                  >
+                    {t === "all" ? "All" : t}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 hover:border-[var(--border-strong)] transition-colors">
+                <Search className="h-3.5 w-3.5 text-[var(--fg-muted)]" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search by tx, order…"
+                  className="bg-transparent text-sm outline-none placeholder:text-[var(--fg-muted)] w-44 md:w-56"
+                />
+              </div>
+              <button
+                onClick={exportCsv}
+                disabled={!filtered.length}
+                className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:border-[var(--border-strong)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed btn-anim"
+              >
+                <Download className="h-3 w-3" />
+                CSV
+              </button>
+              <button
+                onClick={refresh}
+                className="group inline-flex items-center gap-1.5 text-[11px] text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors px-1"
+              >
+                <RefreshCw
+                  className={cn("h-3 w-3", loading ? "spin-slow" : "icon-spin-hover")}
+                />
+                Refresh
+              </button>
+            </div>
+          </div>
+
+          {error ? (
+            <div className="p-6 text-sm text-red-700">{error}</div>
+          ) : loading && !payments.length ? (
+            <SkeletonTable />
+          ) : payments.length === 0 ? (
+            <EmptyState merchant={merchant} />
+          ) : filtered.length === 0 ? (
+            <NoMatches onClear={() => { setQuery(""); setTokenFilter("all"); }} />
+          ) : (
+            <PaymentsTable payments={filtered} />
+          )}
+        </div>
+      </section>
+
+      <Footer />
+    </>
   );
 }
 
-function Stat({
-  label,
-  value,
-  sub,
-  accent,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  accent?: boolean;
-}) {
+function Kpi({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
-    <div className="bg-[#0c0e11] p-6">
-      <span className="text-[10px] uppercase tracking-widest text-zinc-500">{label}</span>
-      <div
-        className={cn(
-          "mt-3 tabular text-2xl font-semibold tracking-tight truncate",
-          accent ? "text-[#5b8cff]" : "text-zinc-100",
-        )}
-      >
-        {value}
-      </div>
-      {sub && <div className="mt-1 text-[11px] text-zinc-600">{sub}</div>}
+    <div className="stat-hover bg-[var(--paper)] px-6 py-6">
+      <div className="text-[11px] uppercase tracking-wider text-[var(--fg-muted)]">{label}</div>
+      <div className="stat-value mt-2 font-serif text-3xl tabular">{value}</div>
+      <div className="text-[11px] text-[var(--fg-muted)]">{sub}</div>
     </div>
   );
 }
 
 function PaymentsTable({ payments }: { payments: PaymentLog[] }) {
   return (
-    <div className="mt-4 overflow-hidden rounded-xl border border-white/[0.06]">
-      <table className="w-full text-left text-sm">
+    <div className="overflow-hidden">
+      <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-            <Th>Payer</Th>
-            <Th right>Gross</Th>
-            <Th right>Net</Th>
-            <Th>Order</Th>
-            <Th>Age</Th>
-            <Th right>Tx</Th>
+          <tr className="text-[11px] uppercase tracking-wider text-[var(--fg-muted)] border-b border-[var(--border)]">
+            <th className="text-left font-medium px-6 py-3">Status</th>
+            <th className="text-left font-medium px-6 py-3">Customer</th>
+            <th className="text-left font-medium px-6 py-3">Order</th>
+            <th className="text-left font-medium px-6 py-3">Time</th>
+            <th className="text-right font-medium px-6 py-3">Amount</th>
+            <th className="px-6 py-3" />
           </tr>
         </thead>
         <tbody>
           {payments.map((p) => {
             const t = tokenMeta(p.token);
-            const orderId = bytes32ToShortString(p.metadata);
+            const order = bytes32ToShortString(p.metadata);
             return (
               <tr
                 key={p.txHash + p.paymentId}
-                className="border-b border-white/[0.04] last:border-0 transition-colors hover:bg-white/[0.02]"
+                className="row-hover border-b border-[var(--border)] last:border-0"
               >
-                <Td>
-                  <span className="font-mono text-zinc-300">{shortAddr(p.payer)}</span>
-                </Td>
-                <Td right>
-                  <span className="tabular text-zinc-300">
-                    {formatAmount(p.grossAmount, t.decimals)}{" "}
-                    <span className="text-[10px] text-zinc-600">{t.symbol}</span>
+                <td className="px-6 py-4">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-[var(--fg)]">
+                    <ArrowDownRight className="h-3 w-3 text-[var(--accent)]" />
+                    Settled
                   </span>
-                </Td>
-                <Td right>
-                  <span className="tabular text-emerald-400">
-                    {formatAmount(p.netAmount, t.decimals)}
-                  </span>
-                </Td>
-                <Td>
-                  <span className="font-mono text-xs text-zinc-500">{orderId || "—"}</span>
-                </Td>
-                <Td>
-                  <span className="text-zinc-500">
-                    {p.timestamp ? timeAgo(p.timestamp) : "—"}
-                  </span>
-                </Td>
-                <Td right>
+                </td>
+                <td className="px-6 py-4 font-mono text-xs text-[var(--fg-muted)]">
+                  {shortAddr(p.payer)}
+                </td>
+                <td className="px-6 py-4 font-mono text-xs text-[var(--fg-muted)]">
+                  {order || "—"}
+                </td>
+                <td className="px-6 py-4 text-[var(--fg-muted)]">
+                  {p.timestamp ? timeAgo(p.timestamp) : "—"}
+                </td>
+                <td className="px-6 py-4 text-right font-mono tabular">
+                  {formatAmount(p.netAmount, t.decimals)}{" "}
+                  <span className="text-[10px] text-[var(--fg-muted)]">{t.symbol}</span>
+                </td>
+                <td className="px-6 py-4 text-right">
                   <a
                     href={`${EXPLORER}/tx/${p.txHash}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:text-zinc-100 transition-colors"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--fg-muted)] hover:text-[var(--fg)] hover:border-[var(--border-strong)] btn-anim"
                   >
                     <ExternalLink className="h-3 w-3" />
                   </a>
-                </Td>
+                </td>
               </tr>
             );
           })}
@@ -381,30 +403,41 @@ function PaymentsTable({ payments }: { payments: PaymentLog[] }) {
   );
 }
 
-function Th({ children, right }: { children: React.ReactNode; right?: boolean }) {
+function Chart({ payments }: { payments: PaymentLog[] }) {
+  // Bucket payments into ~30 bars by relative position
+  const bars = useMemo(() => {
+    if (!payments.length) return Array(30).fill(0) as number[];
+    const slots = Array(30).fill(0) as number[];
+    const sorted = payments.slice().reverse(); // oldest first
+    sorted.forEach((p, i) => {
+      const idx = Math.floor((i / sorted.length) * 30);
+      const t = tokenMeta(p.token);
+      slots[Math.min(idx, 29)] += Number(formatAmount(p.netAmount, t.decimals).replace(/,/g, ""));
+    });
+    return slots;
+  }, [payments]);
+  const max = Math.max(...bars, 1);
   return (
-    <th
-      className={cn(
-        "px-4 py-2.5 text-[10px] font-medium uppercase tracking-widest text-zinc-500",
-        right && "text-right",
-      )}
-    >
-      {children}
-    </th>
+    <div className="mt-6 flex h-40 items-end gap-1">
+      {bars.map((b, i) => (
+        <div
+          key={i}
+          className="group flex-1 rounded-sm bg-[var(--accent-soft)] hover:bg-[var(--accent)] transition-colors"
+          style={{ height: `${Math.max((b / max) * 100, 4)}%` }}
+          title={b > 0 ? `$${b.toFixed(2)}` : "no payments"}
+        />
+      ))}
+    </div>
   );
-}
-
-function Td({ children, right }: { children: React.ReactNode; right?: boolean }) {
-  return <td className={cn("px-4 py-3", right && "text-right")}>{children}</td>;
 }
 
 function SkeletonTable() {
   return (
-    <div className="mt-4 overflow-hidden rounded-xl border border-white/[0.06] divide-y divide-white/[0.04] bg-[#0a0c0f]">
+    <div className="divide-y divide-[var(--border)]">
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="flex items-center gap-3 px-4 py-4">
-          <div className="h-3 w-32 animate-pulse rounded bg-white/[0.04]" />
-          <div className="ml-auto h-3 w-20 animate-pulse rounded bg-white/[0.04]" />
+        <div key={i} className="flex items-center gap-3 px-6 py-4">
+          <div className="h-3 w-32 animate-pulse rounded bg-[var(--border)]" />
+          <div className="ml-auto h-3 w-20 animate-pulse rounded bg-[var(--border)]" />
         </div>
       ))}
     </div>
@@ -413,12 +446,12 @@ function SkeletonTable() {
 
 function NoMatches({ onClear }: { onClear: () => void }) {
   return (
-    <div className="mt-4 rounded-xl border border-dashed border-white/[0.08] bg-white/[0.01] px-6 py-12 text-center">
-      <h3 className="text-[14px] font-medium tracking-tight text-zinc-100">Nothing matches</h3>
-      <p className="mt-1 text-[12px] text-zinc-500">Try a different search or token.</p>
+    <div className="px-6 py-14 text-center">
+      <h3 className="font-serif text-xl">Nothing matches</h3>
+      <p className="mt-1 text-sm text-[var(--fg-muted)]">Try a different search or token.</p>
       <button
         onClick={onClear}
-        className="mt-4 text-[12px] text-[#5b8cff] hover:underline underline-offset-2"
+        className="mt-4 text-sm text-[var(--accent)] hover:underline"
       >
         Clear filters
       </button>
@@ -428,21 +461,25 @@ function NoMatches({ onClear }: { onClear: () => void }) {
 
 function EmptyState({ merchant }: { merchant: `0x${string}` }) {
   return (
-    <div className="mt-4 rounded-xl border border-dashed border-white/[0.08] bg-white/[0.01] px-6 py-14 text-center">
-      <h3 className="text-[15px] font-medium tracking-tight text-zinc-100">No payments yet</h3>
-      <p className="mt-1 text-[13px] text-zinc-500">
+    <div className="px-6 py-16 text-center">
+      <h3 className="font-serif text-2xl">No payments yet</h3>
+      <p className="mt-2 text-sm text-[var(--fg-muted)]">
         Share a checkout link or embed the widget. Payments appear here instantly.
       </p>
-      <div className="mt-5 flex items-center justify-center gap-2">
+      <div className="mt-6 flex items-center justify-center gap-3">
         <a
           href={`/checkout?merchant=${merchant}&amount=10&token=USDC&orderId=TEST_001`}
           target="_blank"
           rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-fg)] btn-anim"
         >
-          <Button>Test a payment</Button>
+          Test a payment
         </a>
-        <a href="/integrate">
-          <Button variant="outline">Integration docs</Button>
+        <a
+          href="/integrate"
+          className="inline-flex items-center gap-2 rounded-md border border-[var(--border-strong)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface)] transition-colors btn-anim"
+        >
+          Integration docs
         </a>
       </div>
     </div>

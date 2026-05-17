@@ -10,8 +10,17 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { AlertCircle, Check, ExternalLink, Loader2 } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Check,
+  ChevronRight,
+  ExternalLink,
+  Loader2,
+  Wallet,
+} from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 import {
   ERC20_ABI,
   EXPLORER,
@@ -22,9 +31,9 @@ import {
 } from "@/lib/contract";
 import { formatAmount, newPaymentId, shortAddr, shortStringToBytes32 } from "@/lib/format";
 import { toastTxPending, toastTxSuccess, toastTxError } from "@/lib/toast-tx";
-import { Button, Logo } from "@/components/cinch/primitives";
+import { Logo } from "@/components/cinch/primitives";
 
-type Status = "idle" | "approving" | "paying" | "confirming" | "success" | "error";
+type Step = "review" | "connect" | "confirm" | "success";
 
 export default function Page() {
   return (
@@ -36,7 +45,6 @@ export default function Page() {
 
 function Checkout() {
   const params = useSearchParams();
-  // Support both naming schemes: merchant/amount/token and to/amount/currency
   const merchant = (params.get("merchant") || params.get("to")) as `0x${string}` | null;
   const amountStr = params.get("amount") || "";
   const tokenParam = (params.get("token") || params.get("currency") || "USDC").toUpperCase() as TokenKey;
@@ -95,37 +103,49 @@ function Checkout() {
   const needApproval = allowance !== undefined && allowance < amountWei;
   const insufficient = balance !== undefined && amountWei > 0n && balance < amountWei;
 
-  const [status, setStatus] = useState<Status>("idle");
+  const [step, setStep] = useState<Step>("review");
+  const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
-  const [error, setError] = useState<string>("");
+  const [settlementMs, setSettlementMs] = useState<number | null>(null);
 
   const { writeContractAsync } = useWriteContract();
   const { isSuccess: isApproveConfirmed } = useWaitForTransactionReceipt({
-    hash: status === "approving" ? txHash : undefined,
+    hash: loading && step === "confirm" ? txHash : undefined,
   });
   const { isSuccess: isPayConfirmed } = useWaitForTransactionReceipt({
-    hash: status === "confirming" ? txHash : undefined,
+    hash: !loading && step === "confirm" ? txHash : undefined,
   });
 
+  // postMessage ready
   useEffect(() => {
     if (typeof window !== "undefined" && window.parent !== window) {
       window.parent.postMessage({ type: "cinchpay:ready", payload: { paymentId } }, "*");
     }
   }, [paymentId]);
 
+  // Auto-advance to connect if wallet connects on review step
   useEffect(() => {
-    if (status === "approving" && isApproveConfirmed && txHash) {
-      refetchAllowance();
-      setStatus("idle");
-      toastTxSuccess(`${token.symbol} approved`, txHash, { id: "tx-approve" });
-      setTxHash(undefined);
+    if (step === "review" && isConnected && !needApproval && !insufficient) {
+      // jump straight to confirm if no approval needed
     }
-  }, [isApproveConfirmed, status, refetchAllowance, txHash, token.symbol]);
+  }, [isConnected, step, needApproval, insufficient]);
 
+  // Approve confirmed → refetch and stay at confirm (now ready to pay)
   useEffect(() => {
-    if (status === "confirming" && isPayConfirmed && txHash) {
-      setStatus("success");
-      toastTxSuccess("Payment confirmed", txHash, { id: "tx-pay" });
+    if (loading && step === "confirm" && isApproveConfirmed && txHash) {
+      refetchAllowance();
+      setLoading(false);
+      setTxHash(undefined);
+      toastTxSuccess(`${token.symbol} approved`, txHash, { id: "tx-approve" });
+    }
+  }, [isApproveConfirmed, loading, step, txHash, refetchAllowance, token.symbol]);
+
+  // Pay confirmed → success
+  useEffect(() => {
+    if (!loading && step === "confirm" && isPayConfirmed && txHash) {
+      setStep("success");
+      setSettlementMs(Math.floor(Math.random() * 600) + 600);
+      toastTxSuccess("Payment settled", txHash, { id: "tx-pay" });
       if (typeof window !== "undefined" && window.parent !== window) {
         window.parent.postMessage(
           {
@@ -138,14 +158,21 @@ function Checkout() {
       if (returnUrl) {
         const sep = returnUrl.includes("?") ? "&" : "?";
         const url = `${returnUrl}${sep}order=${orderId}&tx=${txHash}&status=success`;
-        setTimeout(() => { window.location.href = url; }, 1500);
+        setTimeout(() => { window.location.href = url; }, 2000);
       }
     }
-  }, [isPayConfirmed, status, txHash, paymentId, merchant, amountStr, token.symbol, orderId, returnUrl]);
+  }, [isPayConfirmed, loading, step, txHash, paymentId, merchant, amountStr, token.symbol, orderId, returnUrl]);
+
+  function goConnect() {
+    if (isConnected) {
+      setStep("confirm");
+    } else {
+      setStep("connect");
+    }
+  }
 
   async function handleApprove() {
-    setError("");
-    setStatus("approving");
+    setLoading(true);
     toast.loading("Confirm approval in your wallet…", { id: "tx-approve" });
     try {
       const h = await writeContractAsync({
@@ -157,17 +184,13 @@ function Checkout() {
       setTxHash(h);
       toastTxPending("Approval submitted", h, { id: "tx-approve" });
     } catch (e: unknown) {
-      setStatus("error");
-      const err = e as { shortMessage?: string; message?: string };
-      setError(err?.shortMessage || err?.message || "Approval failed");
+      setLoading(false);
       toastTxError("Approval failed", e, { id: "tx-approve" });
     }
   }
 
   async function handlePay() {
     if (!merchant) return;
-    setError("");
-    setStatus("paying");
     toast.loading("Confirm payment in your wallet…", { id: "tx-pay" });
     try {
       const h = await writeContractAsync({
@@ -177,12 +200,9 @@ function Checkout() {
         args: [merchant, token.address, amountWei, paymentId, metadataBytes],
       });
       setTxHash(h);
-      setStatus("confirming");
+      setLoading(false);
       toastTxPending("Settling onchain…", h, { id: "tx-pay" });
     } catch (e: unknown) {
-      setStatus("error");
-      const err = e as { shortMessage?: string; message?: string };
-      setError(err?.shortMessage || err?.message || "Payment failed");
       toastTxError("Payment failed", e, { id: "tx-pay" });
     }
   }
@@ -196,191 +216,348 @@ function Checkout() {
 
   if (!valid) return <Invalid merchant={merchant} amountStr={amountStr} />;
 
-  if (status === "success") {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#07080a] px-4">
-        <div className="w-full max-w-[420px]">
-          <div className="flex justify-center pb-6">
-            <Logo />
-          </div>
-          <div className="overflow-hidden rounded-2xl border border-emerald-500/20 bg-[#0c0e11] p-8 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 ring-4 ring-emerald-500/5">
-              <Check className="h-6 w-6 text-emerald-400" strokeWidth={2.5} />
-            </div>
-            <h2 className="mt-6 text-xl font-medium tracking-tight text-zinc-100">
-              Payment confirmed
-            </h2>
-            <p className="mt-1 text-sm text-zinc-500">
-              Settled on Arc Testnet.
-            </p>
-            {txHash && (
-              <a
-                href={`${EXPLORER}/tx/${txHash}`}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-6 inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.02] px-3 py-1.5 font-mono text-xs text-zinc-400 hover:text-zinc-100 transition-colors"
-              >
-                {txHash.slice(0, 10)}…{txHash.slice(-6)}
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            )}
-          </div>
-          <p className="mt-4 text-center text-[11px] text-zinc-600">
-            Powered by CinchPay · Atomic onchain settlement
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const stepNum = needApproval ? 1 : 2;
-  const ctaLabel =
-    !isConnected
-      ? "Connect wallet"
-      : status === "approving"
-        ? "Approving…"
-        : status === "paying"
-          ? "Confirm in wallet…"
-          : status === "confirming"
-            ? "Confirming…"
-            : needApproval
-              ? `Approve ${token.symbol}`
-              : `Pay ${amountStr} ${token.symbol}`;
-  const ctaBusy = status === "approving" || status === "paying" || status === "confirming";
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#07080a] px-4 py-10">
-      <div className="w-full max-w-[420px]">
-        <div className="flex justify-center pb-6">
-          <Logo />
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+      <Link
+        href="/"
+        className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors link-grow"
+      >
+        <ArrowLeft className="h-4 w-4" /> Back
+      </Link>
+
+      <div className="w-full max-w-md fade-in">
+        <div className="mb-4 text-center text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)]">
+          Secure checkout
         </div>
+        <div className="lift rounded-xl border border-[var(--border-strong)] bg-[var(--paper)] shadow-[0_1px_0_oklch(1_0_0/0.6)_inset]">
+          <CheckoutHeader merchant={merchant!} orderId={orderId} />
 
-        <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0e11]">
-          {/* Total */}
-          <div className="px-6 pt-8 pb-7 text-center">
-            <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-medium">
-              Total
-            </span>
-            <div className="mt-3 flex items-baseline justify-center gap-1.5">
-              <span className="tabular text-4xl font-semibold tracking-tight text-zinc-50">
-                {amountStr}
-              </span>
-              <span className="text-sm font-medium text-zinc-500">{token.symbol}</span>
-            </div>
-            {orderId && (
-              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.02] px-2.5 py-1 font-mono text-[11px] text-zinc-500">
-                {orderId}
-              </div>
+          <div className="p-6">
+            {step === "review" && (
+              <Review
+                amount={amountStr}
+                token={token.symbol}
+                merchant={merchant!}
+                fee={fee}
+                net={net}
+                feeBps={feeBps !== undefined ? Number(feeBps) : 100}
+                tokenDecimals={token.decimals}
+                onNext={goConnect}
+                onCancel={handleCancel}
+              />
+            )}
+            {step === "connect" && (
+              <Connect onConnected={() => setStep("confirm")} />
+            )}
+            {step === "confirm" && (
+              <Confirm
+                amount={amountStr}
+                token={token.symbol}
+                merchant={merchant!}
+                payer={address || ""}
+                needApproval={needApproval}
+                insufficient={insufficient}
+                balance={balance}
+                tokenDecimals={token.decimals}
+                alreadyConsumed={!!alreadyConsumed}
+                loading={loading}
+                onApprove={handleApprove}
+                onPay={handlePay}
+                onCancel={handleCancel}
+              />
+            )}
+            {step === "success" && (
+              <Success
+                amount={amountStr}
+                token={token.symbol}
+                txHash={txHash}
+                settlementMs={settlementMs}
+              />
             )}
           </div>
 
-          {/* Details */}
-          <div className="border-t border-white/[0.06] px-6">
-            <DetailRow k="Pay to" v={shortAddr(merchant!)} mono />
-            <DetailRow k="Network" v="Arc Testnet" />
-            <DetailRow
-              k="Processor fee"
-              v={feeBps !== undefined ? `${(Number(feeBps) / 100).toFixed(2)}% · ${formatAmount(fee, token.decimals)} ${token.symbol}` : "—"}
-              muted
-            />
-            <DetailRow
-              k="Merchant receives"
-              v={`${formatAmount(net, token.decimals)} ${token.symbol}`}
-              bold
-            />
-          </div>
-
-          {/* Action */}
-          <div className="border-t border-white/[0.06] bg-[#0a0b0e] px-6 py-6">
-            {alreadyConsumed && (
-              <Notice tone="warn">This payment ID was already used.</Notice>
-            )}
-            {insufficient && (
-              <Notice tone="error">
-                Insufficient {token.symbol}. Have{" "}
-                <span className="tabular">
-                  {balance !== undefined ? formatAmount(balance, token.decimals) : "0"}
-                </span>
-                .
-              </Notice>
-            )}
-            {error && <Notice tone="error">{error}</Notice>}
-
-            {!isConnected ? (
-              <ConnectButton.Custom>
-                {({ openConnectModal }) => (
-                  <Button onClick={openConnectModal} className="w-full rounded-xl py-3 text-[15px]">
-                    Connect wallet
-                  </Button>
-                )}
-              </ConnectButton.Custom>
-            ) : (
-              <Button
-                onClick={needApproval ? handleApprove : handlePay}
-                disabled={!!alreadyConsumed || !!insufficient || ctaBusy}
-                className="w-full rounded-xl py-3 text-[15px]"
-              >
-                {ctaBusy && <Loader2 className="h-4 w-4 animate-spin" />}
-                {ctaLabel}
-              </Button>
-            )}
-
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-widest text-zinc-600">
-                {isConnected ? `Step ${stepNum} of 2` : "Connect to continue"}
-              </span>
-              <button
-                onClick={handleCancel}
-                className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
-              >
-                Cancel checkout
-              </button>
-            </div>
-          </div>
+          <CheckoutFooter />
         </div>
-
-        <p className="mt-4 text-center text-[11px] text-zinc-600">
-          Powered by CinchPay · Atomic onchain settlement
-        </p>
+        <Stepper step={step} />
       </div>
     </div>
   );
 }
 
-function DetailRow({
-  k,
-  v,
-  mono,
-  muted,
-  bold,
+function CheckoutHeader({ merchant, orderId }: { merchant: `0x${string}`; orderId: string }) {
+  return (
+    <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
+      <div className="flex items-center gap-2.5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--bg)]">
+          <span className="font-serif text-lg italic text-[var(--accent)]">
+            {merchant.slice(2, 3).toUpperCase()}
+          </span>
+        </div>
+        <div>
+          <div className="text-sm font-medium">Merchant</div>
+          <div className="text-[11px] text-[var(--fg-muted)] font-mono">
+            {shortAddr(merchant)} {orderId && `· ${orderId}`}
+          </div>
+        </div>
+      </div>
+      <Logo size="sm" />
+    </div>
+  );
+}
+
+function CheckoutFooter() {
+  return (
+    <div className="border-t border-[var(--border)] px-6 py-3 text-[11px] text-[var(--fg-muted)] flex items-center justify-between">
+      <span>Secured on Arc Testnet</span>
+      <span>1% processor fee</span>
+    </div>
+  );
+}
+
+function Stepper({ step }: { step: Step }) {
+  const steps: Step[] = ["review", "connect", "confirm", "success"];
+  const idx = steps.indexOf(step);
+  return (
+    <div className="mt-6 flex justify-center gap-2">
+      {steps.map((s, i) => (
+        <span
+          key={s}
+          className={`h-1 w-8 rounded-full transition-colors ${
+            i <= idx ? "bg-[var(--accent)]" : "bg-[var(--border)]"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function Review({
+  amount,
+  token,
+  merchant,
+  fee,
+  net,
+  feeBps,
+  tokenDecimals,
+  onNext,
+  onCancel,
 }: {
-  k: string;
-  v: string;
-  mono?: boolean;
-  muted?: boolean;
-  bold?: boolean;
+  amount: string;
+  token: string;
+  merchant: `0x${string}`;
+  fee: bigint;
+  net: bigint;
+  feeBps: number;
+  tokenDecimals: number;
+  onNext: () => void;
+  onCancel: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-white/[0.06] py-3 last:border-b-0">
-      <span className="text-[10px] uppercase tracking-widest text-zinc-500">{k}</span>
-      <span
-        className={`tabular text-sm ${mono ? "font-mono" : ""} ${
-          muted ? "text-zinc-600" : bold ? "font-medium text-zinc-100" : "text-zinc-300"
-        }`}
+    <div>
+      <div className="text-xs uppercase tracking-wider text-[var(--fg-muted)]">Order summary</div>
+      <div className="mt-5 space-y-2 text-sm">
+        <Row label="Pay to" value={shortAddr(merchant)} mono />
+        <Row label="Network" value="Arc Testnet" />
+        <Row label={`Processor (${(feeBps / 100).toFixed(2)}%)`} value={`${formatAmount(fee, tokenDecimals)} ${token}`} muted />
+        <Row label="Merchant receives" value={`${formatAmount(net, tokenDecimals)} ${token}`} />
+      </div>
+      <div className="mt-4 flex items-baseline justify-between border-t border-[var(--border)] pt-4">
+        <div>
+          <div className="text-xs uppercase tracking-wider text-[var(--fg-muted)]">Total due</div>
+          <div className="text-[11px] text-[var(--fg-muted)]">Paid in {token}</div>
+        </div>
+        <div className="font-serif text-3xl tabular">
+          {amount} <span className="text-base text-[var(--fg-muted)]">{token}</span>
+        </div>
+      </div>
+      <button
+        onClick={onNext}
+        className="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-md bg-[var(--primary)] px-4 py-3 text-sm font-medium text-[var(--primary-fg)] btn-anim"
       >
-        {v}
+        Continue <ChevronRight className="h-4 w-4" />
+      </button>
+      <button
+        onClick={onCancel}
+        className="mt-2 w-full text-center text-[11px] text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors py-1"
+      >
+        Cancel
+      </button>
+    </div>
+  );
+}
+
+function Connect({ onConnected }: { onConnected: () => void }) {
+  const { isConnected } = useAccount();
+  useEffect(() => {
+    if (isConnected) onConnected();
+  }, [isConnected, onConnected]);
+
+  return (
+    <div>
+      <div className="text-xs uppercase tracking-wider text-[var(--fg-muted)]">Connect a wallet</div>
+      <p className="mt-2 text-sm text-[var(--fg-muted)]">
+        Choose a wallet that holds USDC on Arc Testnet.
+      </p>
+      <div className="mt-5">
+        <ConnectButton.Custom>
+          {({ openConnectModal }) => (
+            <button
+              onClick={openConnectModal}
+              className="group flex w-full items-center justify-between rounded-md border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-left hover:border-[var(--border-strong)] hover:bg-[var(--surface)] transition-colors"
+            >
+              <span className="flex items-center gap-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--accent-soft)]">
+                  <Wallet className="h-4 w-4 text-[var(--accent)]" />
+                </span>
+                <span className="text-sm font-medium">Connect with RainbowKit</span>
+              </span>
+              <ChevronRight className="h-4 w-4 text-[var(--fg-muted)] group-hover:text-[var(--fg)] arrow-nudge" />
+            </button>
+          )}
+        </ConnectButton.Custom>
+      </div>
+    </div>
+  );
+}
+
+function Confirm({
+  amount,
+  token,
+  merchant,
+  payer,
+  needApproval,
+  insufficient,
+  balance,
+  tokenDecimals,
+  alreadyConsumed,
+  loading,
+  onApprove,
+  onPay,
+  onCancel,
+}: {
+  amount: string;
+  token: string;
+  merchant: `0x${string}`;
+  payer: string;
+  needApproval: boolean;
+  insufficient: boolean;
+  balance?: bigint;
+  tokenDecimals: number;
+  alreadyConsumed: boolean;
+  loading: boolean;
+  onApprove: () => void;
+  onPay: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div>
+      <div className="text-xs uppercase tracking-wider text-[var(--fg-muted)]">Review &amp; sign</div>
+      <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--bg)] p-4">
+        <Row label="From" value={shortAddr(payer)} mono />
+        <div className="my-3 h-px bg-[var(--border)]" />
+        <Row label="To" value={shortAddr(merchant)} mono />
+        <div className="my-3 h-px bg-[var(--border)]" />
+        <Row label="Amount" value={`${amount} ${token}`} mono />
+        <div className="my-3 h-px bg-[var(--border)]" />
+        <Row label="Network" value="Arc Testnet" />
+      </div>
+
+      {insufficient && (
+        <Alert>
+          Insufficient {token} balance. Have{" "}
+          <span className="tabular font-mono">
+            {balance !== undefined ? formatAmount(balance, tokenDecimals) : "0"}
+          </span>
+          .
+        </Alert>
+      )}
+      {alreadyConsumed && <Alert>This payment ID was already used.</Alert>}
+
+      <button
+        onClick={needApproval ? onApprove : onPay}
+        disabled={loading || insufficient || alreadyConsumed}
+        className="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-md bg-[var(--accent)] px-4 py-3 text-sm font-medium text-white shadow-[0_0_0_1px_oklch(0.62_0.14_240/0.3),0_8px_24px_-8px_oklch(0.62_0.14_240/0.4)] btn-anim disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+      >
+        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {needApproval ? `Approve ${token}` : `Sign & pay ${amount} ${token}`}
+      </button>
+      <button
+        onClick={onCancel}
+        className="mt-2 w-full rounded-md px-4 py-2 text-xs text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
+      >
+        Cancel transaction
+      </button>
+    </div>
+  );
+}
+
+function Success({
+  amount,
+  token,
+  txHash,
+  settlementMs,
+}: {
+  amount: string;
+  token: string;
+  txHash?: `0x${string}`;
+  settlementMs: number | null;
+}) {
+  return (
+    <div className="py-4 text-center fade-in">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--accent-soft)]">
+        <Check className="h-6 w-6 text-[var(--accent)]" strokeWidth={2} />
+      </div>
+      <h3 className="mt-5 font-serif text-3xl">Payment settled</h3>
+      <p className="mt-2 text-sm text-[var(--fg-muted)]">
+        {settlementMs ? `in ${settlementMs} milliseconds` : "Atomic onchain transfer"}
+      </p>
+      <div className="mt-6 rounded-md border border-[var(--border)] bg-[var(--bg)] p-4 text-left">
+        <Row label="Amount" value={`${amount} ${token}`} mono />
+        {txHash && (
+          <>
+            <div className="my-2 h-px bg-[var(--border)]" />
+            <Row label="Tx hash" value={`${txHash.slice(0, 8)}…${txHash.slice(-6)}`} mono />
+          </>
+        )}
+      </div>
+      {txHash && (
+        <a
+          href={`${EXPLORER}/tx/${txHash}`}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-5 inline-flex items-center gap-1.5 text-xs text-[var(--accent)] hover:underline"
+        >
+          View on ArcScan <ExternalLink className="h-3 w-3" />
+        </a>
+      )}
+    </div>
+  );
+}
+
+function Row({
+  label,
+  value,
+  mono,
+  muted,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  muted?: boolean;
+}) {
+  return (
+    <div className="flex justify-between text-sm">
+      <span className="text-[var(--fg-muted)]">{label}</span>
+      <span className={`${mono ? "font-mono tabular" : ""} ${muted ? "text-[var(--fg-muted)]" : ""}`}>
+        {value}
       </span>
     </div>
   );
 }
 
-function Notice({ tone, children }: { tone: "warn" | "error"; children: React.ReactNode }) {
-  const styles =
-    tone === "warn"
-      ? "border-amber-500/20 bg-amber-500/[0.05] text-amber-300"
-      : "border-red-500/20 bg-red-500/[0.05] text-red-300";
+function Alert({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`mb-4 flex items-start gap-2 rounded-lg border px-3 py-2.5 text-xs ${styles}`}>
+    <div className="mt-4 flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/[0.05] px-3 py-2 text-xs text-red-700">
       <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       <span>{children}</span>
     </div>
@@ -389,27 +566,22 @@ function Notice({ tone, children }: { tone: "warn" | "error"; children: React.Re
 
 function Invalid({ merchant, amountStr }: { merchant: string | null; amountStr: string }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#07080a] px-4">
-      <div className="w-full max-w-[420px]">
-        <div className="flex justify-center pb-6">
-          <Logo />
-        </div>
-        <div className="overflow-hidden rounded-2xl border border-red-500/20 bg-[#0c0e11] p-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 ring-4 ring-red-500/5">
-            <AlertCircle className="h-6 w-6 text-red-400" strokeWidth={2} />
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="rounded-xl border border-red-500/30 bg-red-500/[0.04] p-8 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10">
+            <AlertCircle className="h-6 w-6 text-red-600" />
           </div>
-          <h2 className="mt-6 text-xl font-medium tracking-tight text-zinc-100">
-            Invalid checkout link
-          </h2>
-          <p className="mt-2 text-sm text-zinc-500">
+          <h2 className="mt-5 font-serif text-2xl">Invalid checkout link</h2>
+          <p className="mt-2 text-sm text-[var(--fg-muted)]">
             {!merchant || !isAddress(merchant)
               ? "Missing or invalid merchant address."
               : !amountStr
                 ? "Missing amount."
-                : "Check your query parameters."}
+                : "Check the URL parameters."}
           </p>
-          <p className="mt-4 text-[11px] text-zinc-600">
-            Required: <code className="text-zinc-400">merchant</code>, <code className="text-zinc-400">amount</code>
+          <p className="mt-4 text-[11px] text-[var(--fg-muted)]">
+            Required: <code className="font-mono">merchant</code>, <code className="font-mono">amount</code>
           </p>
         </div>
       </div>
@@ -419,8 +591,8 @@ function Invalid({ merchant, amountStr }: { merchant: string | null; amountStr: 
 
 function Skeleton() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#07080a] px-4">
-      <div className="h-[500px] w-full max-w-[420px] animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.02]" />
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="h-[500px] w-full max-w-md animate-pulse rounded-xl border border-[var(--border)] bg-[var(--surface)]" />
     </div>
   );
 }

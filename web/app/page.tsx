@@ -1,194 +1,145 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
-import { Zap, ShieldCheck, Code2, ArrowRight, Copy, Check } from "lucide-react";
-import { Button, Label, Pill } from "@/components/cinch/primitives";
-
-const snippet = `<iframe
-  src="https://cinchpay.app/checkout?merchant=0xD140...&amount=29.99&token=USDC"
-  width="420"
-  height="640"
-  style="border:0;border-radius:16px;"
-></iframe>`;
+import { ArrowUpRight, Check, Code2, Zap, Lock, GitBranch } from "lucide-react";
+import { Footer } from "@/components/Footer";
 
 export default function Landing() {
   return (
-    <div className="flex-1">
+    <>
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-white/[0.06]">
-        <div className="absolute inset-0 bg-dots opacity-60" />
-        <div className="relative mx-auto max-w-6xl px-6 py-24">
-          <Pill dot>Live on Arc Testnet</Pill>
-          <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-[1.05] tracking-tight text-zinc-50 md:text-6xl">
-            USDC checkout for any site.
-          </h1>
-          <p className="mt-3 text-2xl tracking-tight text-zinc-500 md:text-3xl">
-            5 lines of code.
-          </p>
-          <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-zinc-400">
-            Sub-second settlement on Arc Network with a webhook-driven design built for production merchants.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href="/demo">
-              <Button>
-                Try the demo
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/integrate">
-              <Button variant="outline">Integration docs</Button>
-            </Link>
-          </div>
+      <section className="mx-auto max-w-6xl px-6 pt-24 pb-32 md:pt-32">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)]">
+          <span className="h-px w-8 bg-[var(--border-strong)]" />
+          Version 0.1 · Live on Arc Testnet
+        </div>
+        <h1 className="display mt-8 text-balance text-[44px] leading-[1.05] md:text-[72px] max-w-4xl">
+          Stablecoin checkout, refined for the open web.
+        </h1>
+        <p className="mt-8 max-w-xl text-pretty text-lg leading-relaxed text-[var(--fg-muted)]">
+          CinchPay is a USDC checkout processor built on Arc, the Layer-1 by Circle.
+          Customers pay in stablecoins. Merchants settle in under a second.
+          One percent, no surprises.
+        </p>
+        <div className="mt-10 flex flex-wrap items-center gap-4">
+          <Link
+            href="/demo"
+            className="group inline-flex items-center gap-2 rounded-md bg-[var(--primary)] px-5 py-3 text-sm font-medium text-[var(--primary-fg)] btn-anim"
+          >
+            See the checkout
+            <ArrowUpRight className="h-4 w-4 arrow-nudge" />
+          </Link>
+          <Link
+            href="/integrate"
+            className="inline-flex items-center gap-2 rounded-md border border-[var(--border-strong)] px-5 py-3 text-sm font-medium hover:bg-[var(--surface)] transition-colors btn-anim"
+          >
+            Read the docs
+          </Link>
         </div>
       </section>
 
-      {/* Code snippet section */}
-      <section className="border-b border-white/[0.06]">
-        <div className="mx-auto grid max-w-6xl gap-12 px-6 py-24 md:grid-cols-2 md:gap-16">
-          <div>
-            <Label>Integration</Label>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-50 md:text-4xl">
-              Add USDC checkout in seconds.
-            </h2>
-            <p className="mt-4 max-w-md text-[15px] leading-relaxed text-zinc-400">
-              Drop in the iframe, link, or modal. Receive a webhook the instant funds settle onchain. No custodial accounts, no KYC for the merchant.
-            </p>
-            <div className="mt-6 flex flex-col gap-3 text-sm text-zinc-400">
-              <Row k="Settlement" v="< 1s" />
-              <Row k="Currencies" v="USDC, EURC" />
-              <Row k="Fee" v="1.0%" />
+      {/* Stat band */}
+      <section className="border-y border-[var(--border)] bg-[var(--paper)]">
+        <div className="mx-auto grid max-w-6xl grid-cols-2 divide-x divide-[var(--border)] md:grid-cols-4">
+          {(
+            [
+              ["< 1s", "Settlement"],
+              ["1.00%", "Processor fee"],
+              ["USDC", "Native stablecoin"],
+              ["MIT", "Open source"],
+            ] as const
+          ).map(([v, l]) => (
+            <div key={l} className="stat-hover px-6 py-10">
+              <div className="stat-value font-serif text-4xl tracking-tight">{v}</div>
+              <div className="mt-2 text-xs uppercase tracking-wider text-[var(--fg-muted)]">{l}</div>
             </div>
-          </div>
-          <CodeBlock language="HTML" code={snippet} />
+          ))}
         </div>
       </section>
 
       {/* Features */}
-      <section className="border-b border-white/[0.06]">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 md:grid-cols-3">
-          <Feature
-            icon={<Zap className="h-4 w-4" />}
-            iconAccent
-            title="Sub-second settlement"
-            desc="Atomic onchain transfer. The moment your customer signs, the funds are yours."
-          />
-          <Feature
-            icon={<ShieldCheck className="h-4 w-4" />}
-            title="Stablecoin only"
-            desc="USDC and EURC. No volatility, no surprises, no exchange step required."
-          />
-          <Feature
-            icon={<Code2 className="h-4 w-4" />}
-            title="Open source"
-            desc="Contracts, widget, and dashboard are MIT licensed. Self-host if you prefer."
-          />
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="border-b border-white/[0.06]">
-        <div className="mx-auto max-w-6xl px-6 py-24">
-          <Label>Flow</Label>
-          <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight text-zinc-50 md:text-4xl">
-            Three steps. No middlemen.
-          </h2>
-          <div className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.04] md:grid-cols-3">
-            <Step n="01" title="Embed the widget" desc="A single iframe or payment link. Pre-filled with amount, currency, and your merchant address." />
-            <Step n="02" title="Customer pays" desc="Wallet connects, approves USDC, and signs. Settlement happens in the same transaction." />
-            <Step n="03" title="You get paid" desc="Funds land in your wallet. Webhook fires. Order is fulfilled." />
+      <section className="mx-auto max-w-6xl px-6 py-32">
+        <div className="grid gap-16 md:grid-cols-[1fr_2fr]">
+          <div>
+            <div className="text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)]">— Product</div>
+            <h2 className="editorial-display mt-4 text-5xl">A processor that disappears into your stack.</h2>
+          </div>
+          <div className="grid gap-10 sm:grid-cols-2">
+            {FEATURES.map((f) => (
+              <div
+                key={f.title}
+                className="group border-t border-[var(--border)] pt-6 transition-colors hover:border-[var(--border-strong)]"
+              >
+                <div className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--paper)] text-[var(--accent)] transition-colors group-hover:border-[var(--accent)]/40 group-hover:bg-[var(--accent-soft)]">
+                  <f.icon className="h-4 w-4" strokeWidth={1.5} />
+                </div>
+                <h3 className="mt-4 font-serif text-2xl">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--fg-muted)]">{f.body}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="mx-auto flex max-w-6xl items-center justify-between px-6 py-10 text-xs text-zinc-600">
-        <span className="font-mono">CinchPay · Arc Network</span>
-        <span className="font-mono">v0.1.0 · testnet</span>
-      </footer>
-    </div>
-  );
-}
-
-function Row({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="flex items-center justify-between border-b border-white/[0.06] py-2">
-      <span className="text-[10px] uppercase tracking-widest text-zinc-500">{k}</span>
-      <span className="tabular font-mono text-zinc-300">{v}</span>
-    </div>
-  );
-}
-
-function Feature({
-  icon,
-  title,
-  desc,
-  iconAccent,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-  iconAccent?: boolean;
-}) {
-  return (
-    <div className="bg-[#07080a] p-8 md:p-10">
-      <div
-        className={`flex h-8 w-8 items-center justify-center rounded-lg border ${
-          iconAccent
-            ? "border-[#5b8cff]/30 bg-[#5b8cff]/10 text-[#5b8cff]"
-            : "border-white/10 bg-white/[0.03] text-zinc-300"
-        }`}
-      >
-        {icon}
-      </div>
-      <h3 className="mt-5 text-[15px] font-medium tracking-tight text-zinc-100">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-500">{desc}</p>
-    </div>
-  );
-}
-
-function Step({ n, title, desc }: { n: string; title: string; desc: string }) {
-  return (
-    <div className="bg-[#0c0e11] p-8">
-      <span className="font-mono text-xs text-zinc-600">{n} /</span>
-      <h3 className="mt-4 text-base font-medium text-zinc-100">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-500">{desc}</p>
-    </div>
-  );
-}
-
-function CodeBlock({ code, language }: { code: string; language: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-[#0c0e11]">
-      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
-        <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+      {/* Code preview */}
+      <section className="mx-auto max-w-6xl px-6 pb-32">
+        <div className="grid gap-12 md:grid-cols-2 md:items-center">
+          <div>
+            <div className="text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)]">— Integration</div>
+            <h2 className="editorial-display mt-4 text-5xl">Drop in. Get paid.</h2>
+            <p className="mt-6 max-w-md text-[var(--fg-muted)]">
+              A single iframe is all it takes. CinchPay handles wallet
+              connection, signing, broadcast, and confirmation. You receive a
+              webhook the moment funds settle.
+            </p>
+            <ul className="mt-8 space-y-3 text-sm">
+              {["No SDK install", "No PCI scope", "Works with any backend", "Self-host or hosted"].map((i) => (
+                <li key={i} className="flex items-center gap-3">
+                  <Check className="h-4 w-4 text-[var(--accent)]" strokeWidth={2} />
+                  {i}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="lift rounded-lg border border-[var(--border-strong)] bg-[var(--paper)] overflow-hidden">
+            <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-2.5">
+              <span className="h-2.5 w-2.5 rounded-full border border-[var(--border-strong)]" />
+              <span className="h-2.5 w-2.5 rounded-full border border-[var(--border-strong)]" />
+              <span className="h-2.5 w-2.5 rounded-full border border-[var(--border-strong)]" />
+              <span className="ml-2 font-mono text-xs text-[var(--fg-muted)]">checkout.html</span>
+            </div>
+            <pre className="overflow-x-auto p-6 font-mono text-[13px] leading-relaxed text-[var(--fg)]">
+{`<iframe
+  src="https://cinchpay.app/checkout
+    ?merchant=0x8a3f...c21d
+    &amount=49.00
+    &token=USDC"
+  width="420" height="640">
+</iframe>`}
+            </pre>
+          </div>
         </div>
-        <span className="text-[10px] uppercase tracking-widest text-zinc-500">{language}</span>
-        <button
-          className="text-zinc-500 hover:text-zinc-300 transition-colors"
-          onClick={() => {
-            navigator.clipboard.writeText(code);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
-          }}
-        >
-          {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-        </button>
-      </div>
-      <pre className="overflow-x-auto p-5 font-mono text-[12.5px] leading-relaxed">
-        <code
-          dangerouslySetInnerHTML={{
-            __html: code
-              .replace(/(<|&lt;)(\/?[a-zA-Z0-9]+)/g, '<span style="color:#5b8cff">$1$2</span>')
-              .replace(/([a-z-]+)=/g, '<span style="color:#a1a1aa">$1</span>=')
-              .replace(/("[^"]*")/g, '<span style="color:#10b981">$1</span>'),
-          }}
-        />
-      </pre>
-    </div>
+      </section>
+
+      {/* Testimonial */}
+      <section className="border-t border-[var(--border)]">
+        <div className="mx-auto max-w-4xl px-6 py-32 text-center">
+          <p className="display text-balance text-3xl md:text-4xl">
+            &ldquo;Card rails were never designed for software. CinchPay is what
+            checkout looks like when the protocol settles in milliseconds.&rdquo;
+          </p>
+          <div className="mt-10 text-sm text-[var(--fg-muted)]">
+            Anya Mitchell · Founder, Strata Books
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </>
   );
 }
+
+const FEATURES = [
+  { icon: Zap, title: "Sub-second settlement", body: "Arc finalizes blocks in under a second. Your customer's receipt and your funds arrive at the same time." },
+  { icon: Code2, title: "Drop-in iframe", body: "One iframe URL. The widget handles wallets, signing, and confirmation. No SDK to install or maintain." },
+  { icon: Lock, title: "Non-custodial", body: "Funds move wallet-to-wallet. CinchPay never holds merchant balances. We take 1% at settlement." },
+  { icon: GitBranch, title: "Open source", body: "MIT licensed end-to-end. Audit the widget, the contracts, the webhook signer. Or self-host the lot." },
+];

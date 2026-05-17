@@ -1,7 +1,24 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { cn } from "@/lib/cn";
+
+export function Logo({
+  className,
+  size = "default",
+}: {
+  className?: string;
+  size?: "default" | "sm";
+}) {
+  const sz = size === "sm" ? "text-base" : "text-2xl";
+  return (
+    <span className={cn("flex items-baseline gap-1.5", className)}>
+      <span className={cn("font-serif tracking-tight text-foreground", sz)}>Cinch</span>
+      <span className={cn("font-serif italic text-[var(--accent)]", sz)}>Pay</span>
+    </span>
+  );
+}
 
 export function Label({
   children,
@@ -13,7 +30,7 @@ export function Label({
   return (
     <span
       className={cn(
-        "text-[10px] uppercase tracking-widest text-[#52525b] font-medium",
+        "text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)]",
         className,
       )}
     >
@@ -34,14 +51,14 @@ export function Pill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1 text-[11px] text-zinc-300",
+        "inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--paper)] px-2.5 py-0.5 text-[11px] text-[var(--fg-muted)]",
         className,
       )}
     >
       {dot && (
         <span className="relative flex h-1.5 w-1.5">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-[#5b8cff] opacity-60 pulse-dot" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#5b8cff]" />
+          <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-60 pulse-dot" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
         </span>
       )}
       {children}
@@ -50,43 +67,65 @@ export function Pill({
 }
 
 type ButtonProps = {
-  variant?: "primary" | "outline" | "ghost";
+  variant?: "primary" | "outline" | "ghost" | "accent";
   children: React.ReactNode;
   className?: string;
+  asChild?: boolean;
+  href?: string;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export function Button({
   children,
   variant = "primary",
   className,
+  href,
   ...props
 }: ButtonProps) {
   const base =
-    "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-medium btn-anim disabled:opacity-50 disabled:cursor-not-allowed";
   const styles: Record<NonNullable<ButtonProps["variant"]>, string> = {
-    primary:
-      "bg-[#5b8cff] text-white hover:bg-[#6f9bff] shadow-[0_0_0_1px_rgba(91,140,255,0.4),0_8px_24px_-8px_rgba(91,140,255,0.4)]",
+    primary: "bg-[var(--primary)] text-[var(--primary-fg)] hover:bg-[var(--primary)]/90",
     outline:
-      "border border-white/10 bg-white/[0.02] text-zinc-200 hover:bg-white/[0.04] hover:border-white/15",
-    ghost: "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.04]",
+      "border border-[var(--border-strong)] bg-transparent text-[var(--fg)] hover:bg-[var(--surface)]",
+    ghost:
+      "text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--surface)]",
+    accent:
+      "bg-[var(--accent)] text-white shadow-[0_0_0_1px_oklch(0.62_0.14_240/0.3),0_8px_24px_-8px_oklch(0.62_0.14_240/0.4)] hover:bg-[var(--accent)]/95",
   };
+  const cls = cn(base, styles[variant], className);
+
+  if (href) {
+    return (
+      <Link href={href} className={cls}>
+        {children}
+      </Link>
+    );
+  }
   return (
-    <button className={cn(base, styles[variant], className)} {...props}>
+    <button className={cls} {...props}>
       {children}
     </button>
   );
 }
 
-export function Logo({ className }: { className?: string }) {
+export function HairlineBox({
+  children,
+  className,
+  paper,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  paper?: boolean;
+}) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <div className="relative h-5 w-5">
-        <div className="absolute inset-0 rounded-md bg-gradient-to-br from-[#5b8cff] to-[#3b5fcc]" />
-        <div className="absolute inset-[3px] rounded-[3px] border border-white/30" />
-      </div>
-      <span className="text-[15px] font-semibold tracking-tight text-zinc-100">
-        CinchPay
-      </span>
+    <div
+      className={cn(
+        "rounded-lg border border-[var(--border)]",
+        paper ? "bg-[var(--paper)]" : "bg-[var(--card)]",
+        className,
+      )}
+    >
+      {children}
     </div>
   );
 }

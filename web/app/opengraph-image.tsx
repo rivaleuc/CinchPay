@@ -16,107 +16,69 @@ export default async function OG() {
           flexDirection: "column",
           justifyContent: "space-between",
           background:
-            "radial-gradient(circle at 30% 30%, rgba(91,140,255,0.15), transparent 60%), #07080a",
+            "radial-gradient(circle at 80% 20%, rgba(91, 140, 255, 0.10), transparent 60%), #f0f5fb",
           padding: "72px",
-          fontFamily: "ui-sans-serif, system-ui, sans-serif",
+          fontFamily: "ui-serif, Georgia, 'Times New Roman', serif",
         }}
       >
-        {/* Top: brand */}
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 9,
-              background: "linear-gradient(135deg, #5b8cff, #3b5fcc)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <div
-              style={{
-                width: 26,
-                height: 26,
-                borderRadius: 6,
-                border: "1.5px solid rgba(255,255,255,0.35)",
-              }}
-            />
-          </div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+          <span style={{ fontSize: 32, fontWeight: 500, color: "#161821", letterSpacing: "-0.02em" }}>
+            Cinch
+          </span>
           <span
             style={{
-              fontSize: 28,
-              fontWeight: 600,
-              color: "#f4f4f5",
+              fontSize: 32,
+              fontStyle: "italic",
+              color: "#5b8cff",
               letterSpacing: "-0.02em",
             }}
           >
-            CinchPay
+            Pay
           </span>
         </div>
 
-        {/* Middle: headline */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: 10,
               fontSize: 14,
-              color: "#a1a1aa",
+              color: "#5d6680",
               textTransform: "uppercase",
-              letterSpacing: "0.18em",
-              fontWeight: 500,
+              letterSpacing: "0.20em",
+              fontFamily: "ui-sans-serif, system-ui, sans-serif",
             }}
           >
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 999,
-                background: "#5b8cff",
-              }}
-            />
-            Live on Arc Testnet
+            <div style={{ width: 32, height: 1, background: "#b0bccc" }} />
+            Version 0.1 · Live on Arc Testnet
           </div>
           <div
             style={{
-              fontSize: 88,
-              fontWeight: 600,
-              color: "#f4f4f5",
-              letterSpacing: "-0.04em",
+              fontSize: 92,
+              fontWeight: 400,
+              color: "#161821",
+              letterSpacing: "-0.03em",
               lineHeight: 1.02,
               maxWidth: 980,
             }}
           >
-            USDC checkout for any site.
-          </div>
-          <div
-            style={{
-              fontSize: 44,
-              fontWeight: 500,
-              color: "#52525b",
-              letterSpacing: "-0.03em",
-              lineHeight: 1.05,
-            }}
-          >
-            5 lines of code.
+            Stablecoin checkout, refined for the open web.
           </div>
         </div>
 
-        {/* Bottom: meta */}
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            fontSize: 18,
-            color: "#52525b",
+            fontSize: 16,
+            color: "#5d6680",
             fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
           }}
         >
-          <span>cinchpay · sub-second settlement</span>
-          <span>v0.1.0 · testnet</span>
+          <span>cinchpay · settles in &lt;1s</span>
+          <span>1.00% processor fee · MIT</span>
         </div>
       </div>
     ),

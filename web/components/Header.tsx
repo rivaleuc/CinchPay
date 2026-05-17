@@ -20,14 +20,14 @@ export function Header() {
   if (pathname?.startsWith("/checkout")) return null;
 
   return (
-    <header className="border-b border-white/[0.06] bg-[#07080a]">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
-        <Link href="/" onClick={() => setOpen(false)}>
+    <header className="border-b border-[var(--border)]">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-5">
+        <Link href="/" onClick={() => setOpen(false)} aria-label="CinchPay home">
           <Logo />
         </Link>
 
-        {/* Desktop */}
-        <div className="hidden md:flex items-center gap-1 text-sm">
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-8 text-sm md:flex">
           {NAV.map((item) => {
             const active = pathname?.startsWith(item.href);
             return (
@@ -35,27 +35,31 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "px-3 py-1.5 transition-colors",
-                  active ? "text-zinc-100" : "text-zinc-400 hover:text-zinc-100",
+                  "link-grow transition-colors",
+                  active
+                    ? "text-[var(--fg)]"
+                    : "text-[var(--fg-muted)] hover:text-[var(--fg)]",
                 )}
               >
                 {item.label}
               </Link>
             );
           })}
-          <div className="ml-2">
-            <ConnectButton
-              chainStatus="none"
-              accountStatus={{ smallScreen: "avatar", largeScreen: "address" }}
-              showBalance={false}
-            />
-          </div>
+        </nav>
+
+        {/* CTA + wallet */}
+        <div className="hidden items-center gap-3 md:flex">
+          <ConnectButton
+            chainStatus="none"
+            accountStatus={{ smallScreen: "avatar", largeScreen: "address" }}
+            showBalance={false}
+          />
         </div>
 
         {/* Mobile toggle */}
         <button
           onClick={() => setOpen((o) => !o)}
-          className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.02] text-zinc-300 hover:bg-white/[0.06] transition-colors"
+          className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--border-strong)] text-[var(--fg)] hover:bg-[var(--surface)] btn-anim"
           aria-label="Toggle menu"
         >
           {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -64,7 +68,7 @@ export function Header() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden border-t border-white/[0.06] px-6 py-3">
+        <div className="md:hidden border-t border-[var(--border)] px-6 py-4 fade-in">
           <nav className="flex flex-col gap-1 text-sm">
             {NAV.map((item) => {
               const active = pathname?.startsWith(item.href);
@@ -74,10 +78,10 @@ export function Header() {
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    "px-3 py-2 rounded-lg transition-colors",
+                    "px-3 py-2 rounded-md transition-colors",
                     active
-                      ? "bg-white/[0.04] text-zinc-100"
-                      : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100",
+                      ? "bg-[var(--surface)] text-[var(--fg)]"
+                      : "text-[var(--fg-muted)] hover:bg-[var(--surface)] hover:text-[var(--fg)]",
                   )}
                 >
                   {item.label}
@@ -85,12 +89,8 @@ export function Header() {
               );
             })}
           </nav>
-          <div className="mt-3 pt-3 border-t border-white/[0.04]">
-            <ConnectButton
-              chainStatus="none"
-              accountStatus="address"
-              showBalance={false}
-            />
+          <div className="mt-3 pt-3 border-t border-[var(--border)]">
+            <ConnectButton chainStatus="none" accountStatus="address" showBalance={false} />
           </div>
         </div>
       )}
