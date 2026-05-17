@@ -39,6 +39,11 @@ const REFUND_EVENT = parseAbiItem(
   "event Refund(address indexed merchant, address indexed customer, address indexed token, uint256 amount, bytes32 paymentId)",
 );
 
+// Free-tier RPC caps eth_getLogs at 10k blocks. We chunk under that with safety margin.
+const CHUNK_SIZE = 9_500n;
+// Default lookback window. ~25h on Arc (sub-second blocks). Configurable later via "Load more".
+const DEFAULT_LOOKBACK = 90_000n;
+
 // Module-level block timestamp cache, shared across re-renders & hook instances.
 const blockTsCache = new Map<string, number>();
 
@@ -66,6 +71,41 @@ async function batchBlockTimestamps(
   return out;
 }
 
+/**
+ * Fetch event logs across an arbitrary block range by splitting into
+ * RPC-safe chunks. Concurrency-limited to avoid rate caps.
+ */
+async function chunkedGetLogs<T>(
+  client: PublicClient,
+  fromBlock: bigint,
+  toBlock: bigint,
+  fetchOne: (from: bigint, to: bigint) => Promise<T[]>,
+  concurrency = 4,
+): Promise<T[]> {
+  const ranges: Array<[bigint, bigint]> = [];
+  let cursor = fromBlock;
+  while (cursor <= toBlock) {
+    const end = cursor + CHUNK_SIZE - 1n > toBlock ? toBlock : cursor + CHUNK_SIZE - 1n;
+    ranges.push([cursor, end]);
+    cursor = end + 1n;
+  }
+
+  const results: T[] = [];
+  // Process N chunks at a time
+  for (let i = 0; i < ranges.length; i += concurrency) {
+    const batch = ranges.slice(i, i + concurrency);
+    const batchResults = await Promise.all(
+      batch.map(([f, t]) => fetchOne(f, t).catch((e) => {
+        // Skip a chunk if it fails — partial data is better than no data
+        console.warn(`chunk ${f}-${t} failed:`, (e as Error).message);
+        return [] as T[];
+      })),
+    );
+    for (const r of batchResults) results.push(...r);
+  }
+  return results;
+}
+
 export function usePayments(merchant?: `0x${string}`, refreshKey = 0) {
   const client = usePublicClient();
   const [payments, setPayments] = useState<PaymentLog[]>([]);
@@ -80,23 +120,27 @@ export function usePayments(merchant?: `0x${string}`, refreshKey = 0) {
     setError("");
     try {
       const head = await client.getBlockNumber();
-      const fromBlock = head > 200_000n ? head - 200_000n : 0n;
+      const fromBlock = head > DEFAULT_LOOKBACK ? head - DEFAULT_LOOKBACK : 0n;
 
       const [paymentLogs, refundLogs] = await Promise.all([
-        client.getLogs({
-          address: PROCESSOR_ADDRESS,
-          event: PAYMENT_EVENT,
-          args: merchant ? { merchant } : undefined,
-          fromBlock,
-          toBlock: "latest",
-        }),
-        client.getLogs({
-          address: PROCESSOR_ADDRESS,
-          event: REFUND_EVENT,
-          args: merchant ? { merchant } : undefined,
-          fromBlock,
-          toBlock: "latest",
-        }),
+        chunkedGetLogs(client, fromBlock, head, (from, to) =>
+          client.getLogs({
+            address: PROCESSOR_ADDRESS,
+            event: PAYMENT_EVENT,
+            args: merchant ? { merchant } : undefined,
+            fromBlock: from,
+            toBlock: to,
+          }),
+        ),
+        chunkedGetLogs(client, fromBlock, head, (from, to) =>
+          client.getLogs({
+            address: PROCESSOR_ADDRESS,
+            event: REFUND_EVENT,
+            args: merchant ? { merchant } : undefined,
+            fromBlock: from,
+            toBlock: to,
+          }),
+        ),
       ]);
 
       const allHashes = [
