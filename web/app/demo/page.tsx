@@ -26,6 +26,7 @@ const PRODUCTS: Product[] = [
   { id: 3, title: "Studio Headphones", detail: "Over-ear, 30h battery", price: 349, tag: "Audio", image: "/products/headphones.webp" },
   { id: 4, title: "Field Case", detail: "Silicone, magnetic", price: 24, tag: "Accessory", image: "/products/case.avif" },
   { id: 5, title: "Daily Carry", detail: "Modular kit", price: 64, tag: "Accessory", image: "/products/accessory.avif" },
+  { id: 6, title: "Pearl Whitening Kit", detail: "7-day treatment, enamel safe", price: 48, tag: "Beauty", image: "/products/teeth.avif" },
 ];
 
 export default function Demo() {
