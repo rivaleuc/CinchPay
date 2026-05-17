@@ -28,30 +28,40 @@
   color-scheme: light;
 }
 
-/* Dark theme — applied when <html class="dark"> */
-.dark {
-  --bg: oklch(0.18 0.014 245);
-  --paper: oklch(0.22 0.016 245);
-  --surface: oklch(0.26 0.018 245);
-  --fg: oklch(0.97 0.008 235);
-  --fg-muted: oklch(0.66 0.012 240);
-  --fg-faint: oklch(0.48 0.014 240);
+/* Dark theme — applied when <html class="dark">
+   Soft warm-cool palette, easy on the eyes. Not pure black.
+   Reference: Linear / Notion dark. */
+html.dark {
+  --bg: oklch(0.225 0.010 250);          /* soft slate, ~#22272e */
+  --paper: oklch(0.265 0.012 250);       /* card surface,  ~#2a3038 */
+  --surface: oklch(0.305 0.014 250);     /* elevated hover ~#323843 */
+  --fg: oklch(0.95 0.008 240);           /* warm white text */
+  --fg-muted: oklch(0.70 0.012 240);     /* secondary text, clearly readable */
+  --fg-faint: oklch(0.55 0.014 240);
 
-  --card: oklch(0.24 0.016 245);
-  --primary: oklch(0.95 0.012 235);
-  --primary-fg: oklch(0.20 0.018 245);
+  --card: oklch(0.285 0.012 250);
+  --primary: oklch(0.95 0.010 240);
+  --primary-fg: oklch(0.20 0.014 250);
 
-  --accent: oklch(0.74 0.16 240);
-  --accent-soft: oklch(0.32 0.08 240);
-  --accent-fg: oklch(0.92 0.06 235);
+  --accent: oklch(0.78 0.16 240);        /* brighter sky-blue for dark bg */
+  --accent-soft: oklch(0.36 0.10 240);   /* readable accent backdrop */
+  --accent-fg: oklch(0.95 0.06 240);
 
-  --border: oklch(0.34 0.018 245);
-  --border-strong: oklch(0.42 0.020 245);
+  --border: oklch(0.40 0.016 250);
+  --border-strong: oklch(0.48 0.018 250);
+
+  --success: oklch(0.78 0.14 160);
+  --danger: oklch(0.72 0.18 28);
 
   color-scheme: dark;
 }
 
-html, body { transition: background-color 240ms ease, color 240ms ease; }
+/* Explicit theme-driven backgrounds on html/body (don't rely on utility classes alone) */
+html, body {
+  background-color: var(--bg);
+  color: var(--fg);
+  transition: background-color 240ms ease, color 240ms ease;
+}
 
 @theme inline {
   --color-background: var(--bg);
