@@ -1,44 +1,51 @@
 import Link from "next/link";
 import { ArrowUpRight, Check, Code2, Zap, Lock, GitBranch } from "lucide-react";
 import { Footer } from "@/components/Footer";
-import { HeroDemo } from "@/components/HeroDemo";
+import { HeroDemoCard } from "@/components/HeroDemoCard";
 
 export default function Landing() {
   return (
     <>
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 pt-24 pb-32 md:pt-32">
-        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)]">
-          <span className="h-px w-8 bg-[var(--border-strong)]" />
-          Version 0.1 · Live on Arc Testnet
-        </div>
-        <h1 className="display mt-8 text-balance text-[44px] leading-[1.05] md:text-[72px] max-w-4xl">
-          Stablecoin checkout, refined for the open web.
-        </h1>
-        <p className="mt-8 max-w-xl text-pretty text-lg leading-relaxed text-[var(--fg-muted)]">
-          CinchPay is a USDC checkout processor built on Arc, the Layer-1 by Circle.
-          Customers pay in stablecoins. Merchants settle in under a second.
-          One percent, no surprises.
-        </p>
-        <div className="mt-10 flex flex-wrap items-center gap-4">
-          <Link
-            href="/demo"
-            className="group inline-flex items-center gap-2 rounded-md bg-[var(--primary)] px-5 py-3 text-sm font-medium text-[var(--primary-fg)] btn-anim"
-          >
-            See the checkout
-            <ArrowUpRight className="h-4 w-4 arrow-nudge" />
-          </Link>
-          <Link
-            href="/integrate"
-            className="inline-flex items-center gap-2 rounded-md border border-[var(--border-strong)] px-5 py-3 text-sm font-medium hover:bg-[var(--surface)] transition-colors btn-anim"
-          >
-            Read the docs
-          </Link>
+      {/* Hero — text left, demo right */}
+      <section className="mx-auto max-w-6xl px-6 pt-20 pb-24 md:pt-24 md:pb-32">
+        <div className="grid gap-12 md:grid-cols-[1.05fr_1fr] md:gap-16 md:items-center">
+          {/* Left: copy */}
+          <div>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)] font-semibold">
+              <span className="h-px w-8 bg-[var(--border-strong)]" />
+              Version 0.1 · Live on Arc Testnet
+            </div>
+            <h1 className="display mt-7 text-balance text-[42px] leading-[1.02] md:text-[64px]">
+              Stablecoin checkout, refined for the open web.
+            </h1>
+            <p className="mt-7 max-w-md text-pretty text-[15px] leading-relaxed text-[var(--fg-muted)]">
+              CinchPay is a USDC checkout processor built on Arc, the Layer-1 by
+              Circle. Customers pay in stablecoins. Merchants settle in under a
+              second. One percent, no surprises.
+            </p>
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <Link
+                href="/demo"
+                className="group inline-flex items-center gap-2 rounded-md bg-[var(--primary)] px-5 py-3 text-sm font-bold text-[var(--primary-fg)] btn-anim"
+              >
+                See the checkout
+                <ArrowUpRight className="h-4 w-4 arrow-nudge" />
+              </Link>
+              <Link
+                href="/integrate"
+                className="inline-flex items-center gap-2 rounded-md border border-[var(--border-strong)] px-5 py-3 text-sm font-semibold hover:bg-[var(--surface)] transition-colors btn-anim"
+              >
+                Read the docs
+              </Link>
+            </div>
+          </div>
+
+          {/* Right: live demo card */}
+          <div className="relative">
+            <HeroDemoCard />
+          </div>
         </div>
       </section>
-
-      {/* Live demo */}
-      <HeroDemo />
 
       {/* Stat band */}
       <section className="border-y border-[var(--border)] bg-[var(--paper)]">
@@ -53,7 +60,7 @@ export default function Landing() {
           ).map(([v, l]) => (
             <div key={l} className="stat-hover px-6 py-10">
               <div className="stat-value font-serif text-4xl tracking-tight">{v}</div>
-              <div className="mt-2 text-xs uppercase tracking-wider text-[var(--fg-muted)]">{l}</div>
+              <div className="mt-2 text-xs uppercase tracking-wider text-[var(--fg-muted)] font-semibold">{l}</div>
             </div>
           ))}
         </div>
@@ -63,7 +70,7 @@ export default function Landing() {
       <section className="mx-auto max-w-6xl px-6 py-32">
         <div className="grid gap-16 md:grid-cols-[1fr_2fr]">
           <div>
-            <div className="text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)]">— Product</div>
+            <div className="text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)] font-semibold">— Product</div>
             <h2 className="editorial-display mt-4 text-5xl">A processor that disappears into your stack.</h2>
           </div>
           <div className="grid gap-10 sm:grid-cols-2">
@@ -73,9 +80,9 @@ export default function Landing() {
                 className="group border-t border-[var(--border)] pt-6 transition-colors hover:border-[var(--border-strong)]"
               >
                 <div className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--paper)] text-[var(--accent)] transition-colors group-hover:border-[var(--accent)]/40 group-hover:bg-[var(--accent-soft)]">
-                  <f.icon className="h-4 w-4" strokeWidth={1.5} />
+                  <f.icon className="h-4 w-4" strokeWidth={2} />
                 </div>
-                <h3 className="mt-4 font-serif text-2xl">{f.title}</h3>
+                <h3 className="mt-4 font-bold text-xl tracking-tight">{f.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--fg-muted)]">{f.body}</p>
               </div>
             ))}
@@ -87,17 +94,17 @@ export default function Landing() {
       <section className="mx-auto max-w-6xl px-6 pb-32">
         <div className="grid gap-12 md:grid-cols-2 md:items-center">
           <div>
-            <div className="text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)]">— Integration</div>
+            <div className="text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)] font-semibold">— Integration</div>
             <h2 className="editorial-display mt-4 text-5xl">Drop in. Get paid.</h2>
             <p className="mt-6 max-w-md text-[var(--fg-muted)]">
               A single iframe is all it takes. CinchPay handles wallet
               connection, signing, broadcast, and confirmation. You receive a
               webhook the moment funds settle.
             </p>
-            <ul className="mt-8 space-y-3 text-sm">
+            <ul className="mt-8 space-y-3 text-sm font-medium">
               {["No SDK install", "No PCI scope", "Works with any backend", "Self-host or hosted"].map((i) => (
                 <li key={i} className="flex items-center gap-3">
-                  <Check className="h-4 w-4 text-[var(--accent)]" strokeWidth={2} />
+                  <Check className="h-4 w-4 text-[var(--accent)]" strokeWidth={2.5} />
                   {i}
                 </li>
               ))}
@@ -130,8 +137,8 @@ export default function Landing() {
             &ldquo;Card rails were never designed for software. CinchPay is what
             checkout looks like when the protocol settles in milliseconds.&rdquo;
           </p>
-          <div className="mt-10 text-sm text-[var(--fg-muted)]">
-            Anya Mitchell · Founder, Strata Books
+          <div className="mt-10 text-sm text-[var(--fg-muted)] font-medium">
+            Anya Mitchell · Founder, Form Studio
           </div>
         </div>
       </section>
