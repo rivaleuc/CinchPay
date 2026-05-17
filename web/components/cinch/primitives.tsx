@@ -22,10 +22,10 @@ export function Logo({
       </span>
       <span
         className={cn(
-          "font-bold tracking-[-0.02em] text-[var(--fg)] leading-none",
+          "tracking-[-0.03em] text-[var(--fg)] leading-none",
           sz,
         )}
-        style={{ fontFeatureSettings: '"ss01"', fontWeight: 700 }}
+        style={{ fontWeight: 800 }}
       >
         cinchpay
       </span>
