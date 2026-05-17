@@ -7,6 +7,7 @@ import { EXPLORER, PROCESSOR_ADDRESS } from "@/lib/contract";
 
 const sections = [
   { id: "intro", label: "Introduction" },
+  { id: "script", label: "Script tag" },
   { id: "install", label: "Payment link" },
   { id: "checkout", label: "Embed iframe" },
   { id: "events", label: "Modal & events" },
@@ -14,6 +15,39 @@ const sections = [
   { id: "webhooks", label: "Self-hosted webhooks" },
   { id: "contract", label: "Contract" },
 ];
+
+const scriptSnippet = `<!-- 1. Load the SDK from cinchpay.app (no npm, no version drift) -->
+<script src="https://cinchpay.app/v1.js"></script>
+
+<!-- 2a. Data-attribute mode — zero JavaScript -->
+<button
+  data-cinchpay
+  data-merchant="0xD140...0164"
+  data-amount="29.99"
+  data-token="USDC"
+  data-order-id="ORD_8f2a"
+>
+  Pay 29.99 USDC
+</button>
+
+<!-- 2b. Or call CinchPay.open() with callbacks -->
+<script>
+  document.querySelector("#buy").addEventListener("click", () => {
+    CinchPay.open({
+      merchant: "0xD140...0164",
+      amount: 29.99,
+      token: "USDC",
+      orderId: "ORD_8f2a",
+      onSuccess: ({ txHash, paymentId }) => {
+        fetch("/api/fulfill", {
+          method: "POST",
+          body: JSON.stringify({ paymentId, txHash }),
+        });
+      },
+      onClose: () => console.log("Customer cancelled"),
+    });
+  });
+</script>`;
 
 const linkSnippet = `https://cinchpay.app/checkout?merchant=0xD140...0164&amount=29.99&token=USDC&orderId=ORD_8f2a&returnUrl=https://yoursite.com/thanks`;
 
@@ -132,6 +166,27 @@ export default function Docs() {
               The fastest integration is a single URL. You can also embed the iframe directly,
               or self-host the entire widget from our MIT-licensed repository.
             </p>
+          </Section>
+
+          <Section id="script" eyebrow="Path 00 · Recommended" title="Script tag.">
+            <p>
+              One <code className="rounded bg-[var(--surface)] px-1 py-0.5 font-mono text-xs">&lt;script&gt;</code>{" "}
+              tag, no npm, no bundler. The SDK ships from our origin — you always
+              get the latest version, supply-chain-safe by construction.
+            </p>
+            <CodeBlock language="html" code={scriptSnippet} />
+            <div className="rounded-md border border-[var(--border)] bg-[var(--paper)] p-4 text-sm text-[var(--fg-muted)]">
+              <p className="font-semibold text-[var(--fg)] text-xs uppercase tracking-wider">
+                What you get
+              </p>
+              <ul className="mt-3 space-y-1.5 list-disc list-inside">
+                <li><code className="font-mono text-xs">CinchPay.open(opts)</code> — opens the modal programmatically.</li>
+                <li><code className="font-mono text-xs">data-cinchpay</code> attribute — zero-JS auto-binder on any element.</li>
+                <li><code className="font-mono text-xs">onSuccess(payload)</code> / <code className="font-mono text-xs">onClose(payload)</code> callbacks.</li>
+                <li>Origin-checked <code className="font-mono text-xs">postMessage</code> handling done for you.</li>
+                <li>Self-contained — no React, no jQuery, ~3 KB gzipped.</li>
+              </ul>
+            </div>
           </Section>
 
           <Section id="install" eyebrow="Path 01" title="Payment link.">
