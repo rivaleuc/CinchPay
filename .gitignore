@@ -1,0 +1,22 @@
+.DS_Store
+.vscode/
+.idea/
+.claude/
+
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+*.log
+
+.env
+.env.local
+.env.*.local
+
+# Foundry
+contracts/cache/
+contracts/out/
+contracts/broadcast/*/dry-run/
+contracts/.gas-snapshot
