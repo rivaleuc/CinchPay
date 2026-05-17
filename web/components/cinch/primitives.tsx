@@ -11,11 +11,24 @@ export function Logo({
   className?: string;
   size?: "default" | "sm";
 }) {
-  const sz = size === "sm" ? "text-base" : "text-2xl";
+  const sz = size === "sm" ? "text-[15px]" : "text-[19px]";
   return (
-    <span className={cn("flex items-baseline gap-1.5", className)}>
-      <span className={cn("font-serif tracking-tight text-foreground", sz)}>Cinch</span>
-      <span className={cn("font-serif italic text-[var(--accent)]", sz)}>Pay</span>
+    <span className={cn("inline-flex items-center gap-2", className)}>
+      <span
+        className="inline-flex h-5 w-5 items-center justify-center rounded-[5px] bg-[var(--primary)]"
+        aria-hidden
+      >
+        <span className="h-1.5 w-1.5 rounded-[1.5px] bg-[var(--bg)]" />
+      </span>
+      <span
+        className={cn(
+          "font-medium tracking-[-0.015em] text-[var(--fg)] leading-none",
+          sz,
+        )}
+        style={{ fontFeatureSettings: '"ss01"' }}
+      >
+        cinchpay
+      </span>
     </span>
   );
 }

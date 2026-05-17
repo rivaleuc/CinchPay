@@ -289,8 +289,8 @@ function CheckoutHeader({ merchant, orderId }: { merchant: `0x${string}`; orderI
     <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
       <div className="flex items-center gap-2.5">
         <div className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--bg)]">
-          <span className="font-serif text-lg italic text-[var(--accent)]">
-            {merchant.slice(2, 3).toUpperCase()}
+          <span className="text-sm font-medium text-[var(--fg)] tabular">
+            {merchant.slice(2, 4).toUpperCase()}
           </span>
         </div>
         <div>
