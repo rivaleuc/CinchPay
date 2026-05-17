@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Check, ExternalLink, Minus, Plus, ShoppingBag, X } from "lucide-react";
@@ -13,18 +14,18 @@ import { EXPLORER } from "@/lib/contract";
 type Product = {
   id: number;
   title: string;
-  author: string;
+  detail: string;
   price: number;
   tag: string;
+  image: string;
 };
 
 const PRODUCTS: Product[] = [
-  { id: 1, title: "The Pattern Almanac", author: "I. Vorobiev", price: 28, tag: "Essays" },
-  { id: 2, title: "A Field Guide to Stillness", author: "M. Castellucci", price: 21, tag: "Memoir" },
-  { id: 3, title: "Notes from the Workshop", author: "J. Aoki", price: 34, tag: "Craft" },
-  { id: 4, title: "Cartographies of Slow", author: "P. Halberg", price: 26, tag: "Travel" },
-  { id: 5, title: "The Long Quiet", author: "R. Okafor", price: 18, tag: "Poetry" },
-  { id: 6, title: "On Repair", author: "S. Marquez", price: 31, tag: "Design" },
+  { id: 1, title: "Essential Tee", detail: "Heavyweight cotton, charcoal", price: 28, tag: "Apparel", image: "/products/tee.avif" },
+  { id: 2, title: "Trainer 01", detail: "Off-white, EU 42", price: 128, tag: "Footwear", image: "/products/shoe.avif" },
+  { id: 3, title: "Studio Headphones", detail: "Over-ear, 30h battery", price: 349, tag: "Audio", image: "/products/headphones.webp" },
+  { id: 4, title: "Field Case", detail: "Silicone, magnetic", price: 24, tag: "Accessory", image: "/products/case.avif" },
+  { id: 5, title: "Daily Carry", detail: "Modular kit", price: 64, tag: "Accessory", image: "/products/accessory.avif" },
 ];
 
 export default function Demo() {
@@ -90,13 +91,13 @@ export default function Demo() {
       </div>
 
       <section className="mx-auto max-w-6xl px-6 pt-20 pb-12">
-        <div className="text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)]">Strata Books</div>
+        <div className="text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)]">Form Studio</div>
         <h1 className="display mt-4 text-5xl md:text-6xl max-w-3xl">
-          An independent press, paid in stablecoins.
+          A modern goods store, paid in stablecoins.
         </h1>
         <p className="mt-6 max-w-xl text-[var(--fg-muted)]">
-          A working demo of CinchPay on a real storefront. Add a title to your cart and check out
-          with USDC on Arc Testnet.
+          A working demo of CinchPay on a real storefront. Add anything to your cart and check
+          out with USDC on Arc Testnet — settles in under a second.
         </p>
         <div className="mt-5 text-sm text-[var(--fg-muted)]">
           Payments settle to:{" "}
@@ -124,20 +125,24 @@ export default function Demo() {
               key={p.id}
               className="group bg-[var(--paper)] p-6 transition-colors hover:bg-[var(--surface)]"
             >
-              <div className="aspect-[3/4] rounded-sm border border-[var(--border)] bg-gradient-to-br from-[var(--accent-soft)] via-[var(--bg)] to-[var(--surface)] flex items-end p-5 transition-shadow group-hover:shadow-[0_8px_24px_-12px_oklch(0.55_0.08_240/0.25)]">
-                <div className="font-serif text-2xl leading-tight text-balance text-[var(--fg)]">
-                  {p.title}
-                </div>
+              <div className="relative aspect-[3/4] overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)] transition-shadow group-hover:shadow-[0_12px_30px_-12px_oklch(0.55_0.08_240/0.3)]">
+                <Image
+                  src={p.image}
+                  alt={p.title}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                />
               </div>
-              <div className="mt-5 flex items-baseline justify-between">
-                <div>
+              <div className="mt-5 flex items-baseline justify-between gap-4">
+                <div className="min-w-0">
                   <div className="text-[11px] uppercase tracking-wider text-[var(--fg-muted)]">
                     {p.tag}
                   </div>
-                  <div className="mt-1 font-serif text-xl">{p.title}</div>
-                  <div className="text-xs text-[var(--fg-muted)]">by {p.author}</div>
+                  <div className="mt-1 font-serif text-xl truncate">{p.title}</div>
+                  <div className="text-xs text-[var(--fg-muted)] truncate">{p.detail}</div>
                 </div>
-                <div className="font-mono text-sm tabular">${p.price}.00</div>
+                <div className="font-mono text-sm tabular shrink-0">${p.price}.00</div>
               </div>
               <button
                 onClick={() => add(p.id)}
@@ -189,10 +194,18 @@ export default function Demo() {
                       key={i.id}
                       className="flex gap-4 border-b border-[var(--border)] pb-5 last:border-0"
                     >
-                      <div className="h-20 w-16 shrink-0 rounded-sm border border-[var(--border)] bg-gradient-to-br from-[var(--accent-soft)] to-[var(--surface)]" />
-                      <div className="flex-1">
-                        <div className="font-serif text-lg leading-tight">{i.title}</div>
-                        <div className="text-xs text-[var(--fg-muted)]">{i.author}</div>
+                      <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-sm border border-[var(--border)] bg-[var(--surface)]">
+                        <Image
+                          src={i.image}
+                          alt={i.title}
+                          fill
+                          sizes="64px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-serif text-lg leading-tight truncate">{i.title}</div>
+                        <div className="text-xs text-[var(--fg-muted)] truncate">{i.detail}</div>
                         <div className="mt-3 inline-flex items-center gap-3 rounded-md border border-[var(--border)] px-2 py-1">
                           <button
                             onClick={() => sub(i.id)}

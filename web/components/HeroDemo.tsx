@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
@@ -9,7 +10,6 @@ import {
   ArrowUpRight,
   Check,
   ExternalLink,
-  Shirt,
   Sparkles,
   X,
 } from "lucide-react";
@@ -17,8 +17,8 @@ import { newPaymentId, shortAddr } from "@/lib/format";
 import { EXPLORER } from "@/lib/contract";
 
 const PRODUCTS = [
-  { id: "tee", name: "Studio Tee", variant: "Charcoal · Medium", price: 28, accent: "from-zinc-400 to-zinc-700" },
-  { id: "hood", name: "Workshop Hoodie", variant: "Navy · Medium", price: 64, accent: "from-slate-500 to-slate-800" },
+  { id: "tee", name: "Essential Tee", variant: "Charcoal · Medium", price: 28, image: "/products/tee.avif" },
+  { id: "trainer", name: "Trainer 01", variant: "Off-white · 42", price: 128, image: "/products/shoe.avif" },
 ];
 
 export function HeroDemo() {
@@ -123,12 +123,13 @@ export function HeroDemo() {
                       key={p.id}
                       className="group rounded-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden transition-colors hover:border-[var(--border-strong)]"
                     >
-                      <div
-                        className={`relative aspect-square overflow-hidden bg-gradient-to-br ${p.accent}`}
-                      >
-                        <Shirt
-                          className="absolute inset-0 m-auto h-1/2 w-1/2 text-white/80 transition-transform duration-500 group-hover:scale-110"
-                          strokeWidth={1}
+                      <div className="relative aspect-square overflow-hidden bg-[var(--surface)]">
+                        <Image
+                          src={p.image}
+                          alt={p.name}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 200px"
+                          className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                         />
                       </div>
                       <div className="p-3">
