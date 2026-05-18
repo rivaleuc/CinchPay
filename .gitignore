@@ -11,6 +11,10 @@ build/
 .turbo/
 *.log
 
+# But DO commit the SDK build output — consumers install via git URL
+!packages/sdk/dist/
+!packages/sdk/dist/**
+
 .env
 .env.local
 .env.*.local

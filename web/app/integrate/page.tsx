@@ -180,6 +180,85 @@ export default function Docs() {
           </Section>
 
           <Section id="install" eyebrow="Quickstart" title="Install CinchPay in under 60 seconds.">
+            <p className="text-[14px]">
+              Two install paths. <strong className="text-[var(--fg)]">Script tag</strong> for any HTML
+              site, <strong className="text-[var(--fg)]">SDK package</strong> for typed React /
+              TypeScript apps. Both ship from this repo — no npm registry, no version drift.
+            </p>
+
+            <h3 className="mt-8 font-bold text-[15px] tracking-tight text-[var(--fg)]">
+              Option A · Script tag (zero install)
+            </h3>
+            <CodeBlock
+              language="html"
+              code={`<script src="https://cinchpay.app/v1.js"></script>
+
+<button
+  data-cinchpay
+  data-merchant="0xYourWalletAddress"
+  data-amount="29.99"
+  data-token="USDC"
+  data-order-id="ORDER-001"
+>
+  Pay 29.99 USDC
+</button>`}
+            />
+
+            <h3 className="mt-10 font-bold text-[15px] tracking-tight text-[var(--fg)]">
+              Option B · TypeScript / React SDK (pnpm)
+            </h3>
+            <p className="text-[14px]">
+              Installed straight from GitHub — pin to a commit or tag, audit the source,
+              never trust an npm registry version you didn&apos;t check.
+            </p>
+            <CodeBlock
+              language="bash"
+              code={`# pnpm (recommended)
+pnpm add github:rivaleuc/CinchPay#path:packages/sdk
+
+# or npm / yarn / bun
+npm install github:rivaleuc/CinchPay#path:packages/sdk
+yarn add github:rivaleuc/CinchPay#path:packages/sdk
+bun add github:rivaleuc/CinchPay#path:packages/sdk`}
+            />
+
+            <p className="text-[14px] mt-4">Use it in React:</p>
+            <CodeBlock
+              language="tsx"
+              code={`import { CinchPayButton } from "@cinchpay/sdk/react";
+
+<CinchPayButton
+  merchant="0xYourWalletAddress"
+  amount={29.99}
+  token="USDC"
+  orderId="ORDER-001"
+  onSuccess={({ txHash, paymentId }) => fulfill(paymentId, txHash)}
+  className="bg-blue-600 text-white px-5 py-3 rounded-md"
+>
+  Pay 29.99 USDC
+</CinchPayButton>`}
+            />
+
+            <p className="text-[14px] mt-4">Or use the imperative API:</p>
+            <CodeBlock
+              language="ts"
+              code={`import { CinchPay } from "@cinchpay/sdk";
+
+CinchPay.open({
+  merchant: "0xYourWalletAddress",
+  amount: 29.99,
+  token: "USDC",
+  orderId: "ORDER-001",
+  onSuccess: ({ txHash, paymentId }) => fulfill(paymentId, txHash),
+  onClose: () => console.log("cancelled"),
+});`}
+            />
+
+            <hr className="my-10 border-[var(--border)]" />
+
+            <h3 className="font-bold text-[15px] tracking-tight text-[var(--fg)]">
+              The rest of the install flow
+            </h3>
             <p>
               CinchPay is a static script — no npm package, no SDK install, no bundler config.
               Your customers pay USDC on Arc Network, you receive funds directly in your wallet.

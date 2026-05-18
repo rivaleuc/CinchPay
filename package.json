@@ -1,0 +1,18 @@
+{
+  "name": "cinchpay-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "CinchPay — stablecoin checkout for any site",
+  "license": "MIT",
+  "packageManager": "pnpm@11.1.2",
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm -r build",
+    "build:sdk": "pnpm --filter @cinchpay/sdk build",
+    "build:web": "pnpm --filter web build",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

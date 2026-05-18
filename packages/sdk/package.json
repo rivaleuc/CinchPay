@@ -1,0 +1,63 @@
+{
+  "name": "@cinchpay/sdk",
+  "version": "0.1.0",
+  "description": "Stablecoin checkout for any site. USDC settlement on Arc Network.",
+  "license": "MIT",
+  "author": "rivaleuc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rivaleuc/CinchPay.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://cinchpay.app",
+  "keywords": [
+    "cinchpay",
+    "usdc",
+    "stablecoin",
+    "checkout",
+    "arc",
+    "circle",
+    "payments"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "react": "^19.0.0",
+    "typescript": "^5.4.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
