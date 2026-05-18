@@ -6,15 +6,13 @@ import { Moon, Sun } from "lucide-react";
 const STORAGE_KEY = "cp-theme";
 type Theme = "light" | "dark";
 
-function readSystemTheme(): Theme {
+function readSavedTheme(): Theme {
   if (typeof window === "undefined") return "light";
   try {
     const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
     if (saved === "dark" || saved === "light") return saved;
   } catch {}
-  if (typeof window.matchMedia === "function") {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  }
+  // Default to light — ignore prefers-color-scheme so all new visitors land on light
   return "light";
 }
 
@@ -34,8 +32,9 @@ export function ThemeToggle({ className }: { className?: string }) {
     const fromDom: Theme = document.documentElement.classList.contains("dark")
       ? "dark"
       : "light";
-    const desired = readSystemTheme();
-    const initial = fromDom || desired;
+    const saved = readSavedTheme();
+    // Prefer DOM state (set by inline bootstrap), fall back to saved preference
+    const initial = fromDom === "dark" || saved === "dark" ? "dark" : "light";
     setTheme(initial);
     applyTheme(initial);
   }, []);

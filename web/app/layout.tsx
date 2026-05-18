@@ -47,7 +47,7 @@ export default function RootLayout({
         {/* Theme bootstrap — runs before paint to avoid flash */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('cp-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}if(t==='dark'){document.documentElement.classList.add('dark')}}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('cp-theme');if(t==='dark'){document.documentElement.classList.add('dark')}}catch(e){}})();`,
           }}
         />
       </head>
