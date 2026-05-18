@@ -21,10 +21,10 @@ const ALL_PRODUCTS = [
 
 // 5 curated pairs, rotated every 2s
 const PAIRS: [number, number][] = [
+  [6, 7], // print tee + air force  ← first impression
   [0, 1], // tee + trainer
   [2, 3], // headphones + case
   [4, 5], // carry + whitening
-  [6, 7], // print tee + air force
   [7, 2], // air force + headphones
 ];
 
