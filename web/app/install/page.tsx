@@ -21,10 +21,10 @@ type Stack = "html" | "react" | "shopify" | "wordpress";
 type TokenChoice = "USDC" | "EURC";
 
 const STACKS: { id: Stack; label: string; sub: string; lang: string }[] = [
-  { id: "html", label: "HTML / Webflow", sub: "Squarespace · Wix · static sites", lang: "html" },
-  { id: "react", label: "React / Next.js", sub: "Vue · SvelteKit · SPA", lang: "jsx" },
+  { id: "html", label: "HTML", sub: "Webflow · Squarespace · Wix", lang: "html" },
+  { id: "react", label: "React", sub: "Next.js · Vue · SvelteKit", lang: "jsx" },
   { id: "shopify", label: "Shopify", sub: "Theme Liquid", lang: "liquid" },
-  { id: "wordpress", label: "WordPress", sub: "WooCommerce · functions.php", lang: "php" },
+  { id: "wordpress", label: "WordPress", sub: "WooCommerce · PHP", lang: "php" },
 ];
 
 export default function Install() {
@@ -71,9 +71,9 @@ export default function Install() {
       </section>
 
       {/* Wizard */}
-      <section className="mx-auto max-w-5xl px-6 py-12 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
+      <section className="mx-auto max-w-5xl px-6 py-10 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
         {/* LEFT — config */}
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* Step 1: Connect */}
           <StepCard n="01" title="Connect your wallet" done={isConnected}>
             {isConnected ? (
@@ -110,8 +110,8 @@ export default function Install() {
           </StepCard>
 
           {/* Step 2: Configure */}
-          <StepCard n="02" title="Configure the button">
-            <div className="grid gap-4 sm:grid-cols-2">
+          <StepCard n="02" title="Configure">
+            <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Amount">
                 <div className="flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--paper)] px-3 py-2 focus-within:border-[var(--border-strong)] transition-colors">
                   <input
@@ -122,7 +122,7 @@ export default function Install() {
                       setAmount(e.target.value);
                       setLabel(`Pay ${e.target.value} ${token}`);
                     }}
-                    className="flex-1 bg-transparent outline-none text-sm font-semibold tabular text-[var(--fg)]"
+                    className="flex-1 min-w-0 bg-transparent outline-none text-sm font-semibold tabular text-[var(--fg)]"
                   />
                   <select
                     value={token}
@@ -131,14 +131,14 @@ export default function Install() {
                       setToken(t);
                       setLabel(`Pay ${amount} ${t}`);
                     }}
-                    className="bg-transparent text-xs font-semibold text-[var(--fg-muted)] outline-none cursor-pointer"
+                    className="shrink-0 bg-transparent text-xs font-semibold text-[var(--fg-muted)] outline-none cursor-pointer"
                   >
                     <option>USDC</option>
                     <option>EURC</option>
                   </select>
                 </div>
               </Field>
-              <Field label="Order ID (optional)">
+              <Field label="Order ID">
                 <input
                   value={orderId}
                   onChange={(e) => setOrderId(e.target.value)}
@@ -157,23 +157,23 @@ export default function Install() {
           </StepCard>
 
           {/* Step 3: Stack */}
-          <StepCard n="03" title="What are you building with?">
-            <div className="grid gap-2 sm:grid-cols-2">
+          <StepCard n="03" title="Your stack">
+            <div className="grid gap-2 grid-cols-2">
               {STACKS.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => setStack(s.id)}
                   className={cn(
-                    "text-left rounded-md border p-3 transition-colors",
+                    "text-left rounded-md border px-3 py-2.5 transition-colors min-w-0",
                     stack === s.id
                       ? "border-[var(--accent)] bg-[var(--accent-soft)]"
                       : "border-[var(--border)] bg-[var(--paper)] hover:border-[var(--border-strong)] hover:bg-[var(--surface)]",
                   )}
                 >
-                  <div className="text-[13px] font-bold tracking-tight text-[var(--fg)]">
+                  <div className="text-[13px] font-bold tracking-tight text-[var(--fg)] truncate">
                     {s.label}
                   </div>
-                  <div className="mt-0.5 text-[11px] text-[var(--fg-muted)]">{s.sub}</div>
+                  <div className="mt-0.5 text-[10px] text-[var(--fg-muted)] truncate">{s.sub}</div>
                 </button>
               ))}
             </div>
@@ -253,10 +253,10 @@ function StepCard({
 }) {
   return (
     <div>
-      <div className="flex items-baseline gap-3">
+      <div className="flex items-center gap-2.5">
         <span
           className={cn(
-            "flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-colors",
+            "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold transition-colors",
             done
               ? "bg-[var(--accent)] text-white"
               : "bg-[var(--surface)] text-[var(--fg-muted)] border border-[var(--border)]",
@@ -264,9 +264,11 @@ function StepCard({
         >
           {done ? <Check className="h-3 w-3" strokeWidth={3} /> : n}
         </span>
-        <h2 className="text-[18px] font-bold tracking-tight text-[var(--fg)]">{title}</h2>
+        <h2 className="text-[17px] font-bold tracking-tight text-[var(--fg)] leading-none">
+          {title}
+        </h2>
       </div>
-      <div className="mt-4 ml-9">{children}</div>
+      <div className="mt-3 ml-0 sm:ml-9">{children}</div>
     </div>
   );
 }
