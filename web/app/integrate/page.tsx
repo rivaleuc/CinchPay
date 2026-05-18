@@ -134,49 +134,17 @@ export default function Docs() {
           <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--fg-muted)]">
             Documentation
           </div>
-          <nav className="mt-4 space-y-1.5 text-sm">
+          <nav className="mt-4 space-y-1 text-sm">
             {sections.map((s) => {
               const className =
-                "flex items-center gap-1.5 transition-colors " +
+                "block py-1 transition-colors " +
                 (s.primary
-                  ? "font-bold text-[var(--accent)] hover:text-[var(--accent-fg)]"
-                  : s.external
-                    ? "text-[var(--fg)] font-semibold hover:text-[var(--accent)]"
-                    : "text-[var(--fg-muted)] hover:text-[var(--fg)]");
+                  ? "font-semibold text-[var(--fg)] hover:text-[var(--accent)]"
+                  : "text-[var(--fg-muted)] hover:text-[var(--fg)]");
 
-              const content = (
-                <>
-                  {s.external && (
-                    <svg
-                      width="11"
-                      height="11"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden
-                    >
-                      <path d="M15 18l-6-6 6-6" />
-                    </svg>
-                  )}
-                  <span>{s.label}</span>
-                  {s.primary && (
-                    <span className="ml-1 inline-block rounded border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--accent-fg)]">
-                      Start here
-                    </span>
-                  )}
-                </>
-              );
-
-              return s.external ? (
-                <Link key={s.id} href={s.external} className={className}>
-                  {content}
-                </Link>
-              ) : (
+              return (
                 <a key={s.id} href={`#${s.id}`} className={className}>
-                  {content}
+                  {s.label}
                 </a>
               );
             })}
@@ -266,32 +234,21 @@ export default function Docs() {
               title="Drop in a button"
               body={
                 <>
-                  <p>Three patterns. Pick the one that fits your stack.</p>
-
-                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    <Choice
-                      label="A — Zero JS"
-                      desc="Data attributes on any button. The script auto-binds clicks."
-                      best="Shopify · WordPress · no-code"
-                    />
-                    <Choice
-                      label="B — Programmatic"
-                      desc="Call CinchPay.open() from your own JS with callbacks."
-                      best="Static sites · vanilla JS"
-                    />
-                    <Choice
-                      label="C — Typed SDK"
-                      desc="Import a React component or hook from @cinchpay/sdk."
-                      best="React · Next.js · Vue · TS"
-                    />
-                  </div>
-
-                  <p className="mt-6 text-[13px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
-                    A · Data-attribute button (with script tag)
+                  <p>
+                    Pick the pattern that fits your stack. The widget behaves identically
+                    across all three.
                   </p>
-                  <CodeBlock
-                    language="html"
-                    code={`<script src="https://cinchpay.app/v1.js"></script>
+                  <div className="mt-2">
+                    <Tabs
+                      tabs={[
+                        {
+                          id: "html",
+                          label: "HTML",
+                          sub: "no JS",
+                          content: (
+                            <NakedCode
+                              language="html"
+                              code={`<script src="https://cinchpay.app/v1.js"></script>
 
 <button
   data-cinchpay
@@ -302,14 +259,17 @@ export default function Docs() {
 >
   Pay 29.99 USDC
 </button>`}
-                  />
-
-                  <p className="mt-6 text-[13px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
-                    B · Programmatic open (with script tag)
-                  </p>
-                  <CodeBlock
-                    language="js"
-                    code={`document.querySelector("#buy").addEventListener("click", () => {
+                            />
+                          ),
+                        },
+                        {
+                          id: "js",
+                          label: "Vanilla JS",
+                          sub: "programmatic",
+                          content: (
+                            <NakedCode
+                              language="js"
+                              code={`document.querySelector("#buy").addEventListener("click", () => {
   CinchPay.open({
     merchant: "0xYourWalletAddress",
     amount: 29.99,
@@ -323,18 +283,18 @@ export default function Docs() {
     },
   });
 });`}
-                  />
-
-                  <p className="mt-6 text-[13px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
-                    C · Typed SDK (React)
-                  </p>
-                  <CodeBlock
-                    language="bash"
-                    code={`pnpm add github:rivaleuc/CinchPay#path:packages/sdk`}
-                  />
-                  <CodeBlock
-                    language="tsx"
-                    code={`"use client";
+                            />
+                          ),
+                        },
+                        {
+                          id: "react",
+                          label: "React",
+                          sub: "typed SDK",
+                          content: (
+                            <NakedCode
+                              language="tsx"
+                              code={`// pnpm add github:rivaleuc/CinchPay#path:packages/sdk
+"use client";
 import { CinchPayButton } from "@cinchpay/sdk/react";
 
 export function Buy() {
@@ -351,7 +311,12 @@ export function Buy() {
     </CinchPayButton>
   );
 }`}
-                  />
+                            />
+                          ),
+                        },
+                      ]}
+                    />
+                  </div>
                 </>
               }
             />
@@ -601,26 +566,74 @@ function Section({
 
 function Step({ n, title, body }: { n: string; title: string; body: React.ReactNode }) {
   return (
-    <div className="mt-8 border-l-2 border-[var(--border)] pl-6 hover:border-[var(--accent)] transition-colors">
-      <div className="flex items-baseline gap-3">
-        <span className="font-mono text-[11px] text-[var(--fg-faint)] tracking-widest">{n}</span>
-        <h3 className="text-[18px] font-bold tracking-tight text-[var(--fg)]">{title}</h3>
+    <div className="mt-12 first:mt-8 grid grid-cols-[auto_1fr] gap-x-5 gap-y-3">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--paper)] text-[11px] font-bold tabular text-[var(--fg)]">
+        {parseInt(n, 10)}
       </div>
-      <div className="mt-3 space-y-3 text-[14px] leading-relaxed text-[var(--fg-muted)]">
+      <h3 className="self-center text-[20px] font-bold tracking-tight text-[var(--fg)] leading-none">
+        {title}
+      </h3>
+      <div className="col-start-2 space-y-3 text-[14px] leading-relaxed text-[var(--fg-muted)]">
         {body}
       </div>
     </div>
   );
 }
 
-function Choice({ label, desc, best }: { label: string; desc: string; best: string }) {
+function Tabs({
+  tabs,
+}: {
+  tabs: { id: string; label: string; sub?: string; content: React.ReactNode }[];
+}) {
+  const [active, setActive] = useState(tabs[0]?.id);
+  const current = tabs.find((t) => t.id === active) ?? tabs[0];
+  if (!current) return null;
   return (
-    <div className="rounded-md border border-[var(--border)] bg-[var(--paper)] p-4 hover:border-[var(--border-strong)] transition-colors">
-      <div className="text-[13px] font-bold tracking-tight text-[var(--fg)]">{label}</div>
-      <p className="mt-1 text-[12px] text-[var(--fg-muted)] leading-relaxed">{desc}</p>
-      <p className="mt-2 text-[10px] uppercase tracking-wider text-[var(--accent)] font-semibold">
-        {best}
-      </p>
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--paper)] overflow-hidden">
+      <div className="flex items-center gap-1 border-b border-[var(--border)] px-2 py-1.5">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setActive(t.id)}
+            className={
+              "rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors " +
+              (active === t.id
+                ? "bg-[var(--surface)] text-[var(--fg)]"
+                : "text-[var(--fg-muted)] hover:text-[var(--fg)]")
+            }
+          >
+            {t.label}
+            {t.sub && active === t.id && (
+              <span className="ml-1.5 text-[10px] font-normal text-[var(--fg-muted)]">
+                · {t.sub}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      <div>{current.content}</div>
+    </div>
+  );
+}
+
+function NakedCode({ code, language: _language }: { code: string; language: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        onClick={() => {
+          navigator.clipboard.writeText(code);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        }}
+        className="absolute top-3 right-3 inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--bg)]/80 text-[var(--fg-muted)] hover:text-[var(--fg)] hover:border-[var(--border-strong)] transition-colors"
+        aria-label="Copy code"
+      >
+        {copied ? <Check className="h-3 w-3 text-[var(--accent)]" /> : <Copy className="h-3 w-3" />}
+      </button>
+      <pre className="overflow-x-auto p-5 pr-14 font-mono text-[12.5px] leading-[1.75] text-[var(--fg)]">
+        <code>{code}</code>
+      </pre>
     </div>
   );
 }
