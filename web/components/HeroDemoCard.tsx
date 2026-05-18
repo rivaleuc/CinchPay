@@ -15,13 +15,15 @@ const ALL_PRODUCTS = [
   { id: "case", name: "Field Case", variant: "Silicone, MagSafe", price: 24, image: "/products/case.avif" },
   { id: "carry", name: "Daily Carry", variant: "Modular kit", price: 64, image: "/products/accessory.avif" },
   { id: "whitening", name: "Pearl Whitening", variant: "7-day kit", price: 48, image: "/products/teeth.avif" },
+  { id: "print", name: "Print Tee", variant: "Cotton blend, Large", price: 34, image: "/products/tshirt.jpg" },
 ];
 
-// 3 curated pairs, rotated every 2s
+// 4 curated pairs, rotated every 2s
 const PAIRS: [number, number][] = [
   [0, 1], // tee + trainer
   [2, 3], // headphones + case
   [4, 5], // carry + whitening
+  [6, 1], // print tee + trainer
 ];
 
 const ROTATE_MS = 2000;
