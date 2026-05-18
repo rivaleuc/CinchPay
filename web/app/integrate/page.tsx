@@ -14,7 +14,6 @@ type NavItem = {
 };
 
 const sections: NavItem[] = [
-  { id: "home", label: "Home", external: "/" },
   { id: "intro", label: "Introduction" },
   { id: "install", label: "Install", primary: true },
   { id: "script", label: "Script tag" },

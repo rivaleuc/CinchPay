@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/cn";
 
 const NAV = [
+  { href: "/", label: "Home" },
   { href: "/install", label: "Install" },
   { href: "/demo", label: "Demo" },
   { href: "/integrate", label: "Docs" },
@@ -31,7 +32,7 @@ export function Header() {
         {/* Desktop nav */}
         <nav className="hidden items-center gap-8 text-sm md:flex">
           {NAV.map((item) => {
-            const active = pathname?.startsWith(item.href);
+            const active = item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
             return (
               <Link
                 key={item.href}
@@ -74,7 +75,7 @@ export function Header() {
         <div className="md:hidden border-t border-[var(--border)] px-6 py-4 fade-in">
           <nav className="flex flex-col gap-1 text-sm">
             {NAV.map((item) => {
-              const active = pathname?.startsWith(item.href);
+              const active = item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
               return (
                 <Link
                   key={item.href}
