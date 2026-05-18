@@ -102,7 +102,7 @@ export default function Landing() {
               webhook the moment funds settle.
             </p>
             <ul className="mt-8 space-y-3 text-sm font-medium">
-              {["No SDK install", "No PCI scope", "Works with any backend", "Self-host or hosted"].map((i) => (
+              {["No npm registry", "No PCI scope", "Works with any backend", "MIT licensed"].map((i) => (
                 <li key={i} className="flex items-center gap-3">
                   <Check className="h-4 w-4 text-[var(--accent)]" strokeWidth={2.5} />
                   {i}
