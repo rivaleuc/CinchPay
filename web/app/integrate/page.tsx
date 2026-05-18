@@ -7,8 +7,9 @@ import { EXPLORER, PROCESSOR_ADDRESS } from "@/lib/contract";
 
 const sections = [
   { id: "intro", label: "Introduction" },
+  { id: "install", label: "Install", primary: true },
   { id: "script", label: "Script tag" },
-  { id: "install", label: "Payment link" },
+  { id: "link", label: "Payment link" },
   { id: "checkout", label: "Embed iframe" },
   { id: "events", label: "Modal & events" },
   { id: "returnurl", label: "Return URL" },
@@ -130,9 +131,19 @@ export default function Docs() {
               <a
                 key={s.id}
                 href={`#${s.id}`}
-                className="block text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
+                className={
+                  "block transition-colors " +
+                  (s.primary
+                    ? "font-bold text-[var(--accent)] hover:text-[var(--accent-fg)]"
+                    : "text-[var(--fg-muted)] hover:text-[var(--fg)]")
+                }
               >
                 {s.label}
+                {s.primary && (
+                  <span className="ml-1.5 inline-block rounded border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--accent-fg)]">
+                    Start here
+                  </span>
+                )}
               </a>
             ))}
           </nav>
@@ -168,6 +179,206 @@ export default function Docs() {
             </p>
           </Section>
 
+          <Section id="install" eyebrow="Quickstart" title="Install CinchPay in under 60 seconds.">
+            <p>
+              CinchPay is a static script — no npm package, no SDK install, no bundler config.
+              Your customers pay USDC on Arc Network, you receive funds directly in your wallet.
+            </p>
+
+            <Step
+              n="01"
+              title="Prerequisites"
+              body={
+                <>
+                  <p>
+                    All you need is a wallet address that can receive USDC on Arc — that&apos;s
+                    your merchant ID. No signup, no API key.
+                  </p>
+                  <ul className="mt-3 space-y-1.5 text-sm leading-relaxed list-disc list-inside">
+                    <li>An EVM-compatible wallet (MetaMask, Coinbase Wallet, Privy, Circle Wallet, etc.)</li>
+                    <li>The wallet address added as a network on Arc — chain ID <code className="font-mono text-xs">5042002</code></li>
+                    <li>(For testing) A small amount of testnet USDC from <a className="text-[var(--accent)] hover:underline" href="https://faucet.circle.com" target="_blank" rel="noreferrer">faucet.circle.com</a></li>
+                  </ul>
+                </>
+              }
+            />
+
+            <Step
+              n="02"
+              title="Add the script"
+              body={
+                <>
+                  <p>
+                    Drop this single tag into any HTML page — works on Shopify, WordPress,
+                    Webflow, Next.js, vanilla HTML, anywhere.
+                  </p>
+                  <CodeBlock
+                    language="html"
+                    code={`<script src="https://cinchpay.app/v1.js"></script>`}
+                  />
+                </>
+              }
+            />
+
+            <Step
+              n="03"
+              title="Pick how customers pay"
+              body={
+                <>
+                  <p>Three patterns. Pick the one that fits your stack.</p>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <Choice
+                      label="A — Zero JavaScript"
+                      desc="Add data attributes to any button. The script auto-binds clicks."
+                      best="Best for: Shopify, WordPress, no-code sites"
+                    />
+                    <Choice
+                      label="B — Programmatic"
+                      desc="Call CinchPay.open() in your own JS with onSuccess / onClose callbacks."
+                      best="Best for: React, Vue, Next.js apps"
+                    />
+                  </div>
+
+                  <p className="mt-4 text-[13px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
+                    A · Data-attribute button
+                  </p>
+                  <CodeBlock
+                    language="html"
+                    code={`<button
+  data-cinchpay
+  data-merchant="0xYourWalletAddress"
+  data-amount="29.99"
+  data-token="USDC"
+  data-order-id="ORDER-001"
+>
+  Pay 29.99 USDC
+</button>`}
+                  />
+
+                  <p className="mt-6 text-[13px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
+                    B · Programmatic open
+                  </p>
+                  <CodeBlock
+                    language="js"
+                    code={`document.querySelector("#buy").addEventListener("click", () => {
+  CinchPay.open({
+    merchant: "0xYourWalletAddress",
+    amount: 29.99,
+    token: "USDC",
+    orderId: "ORDER-001",
+    onSuccess: ({ txHash, paymentId }) => {
+      // Mark the order as paid in your backend
+      fetch("/api/orders/fulfill", {
+        method: "POST",
+        body: JSON.stringify({ paymentId, txHash }),
+      });
+    },
+    onClose: () => console.log("Customer cancelled"),
+  });
+});`}
+                  />
+                </>
+              }
+            />
+
+            <Step
+              n="04"
+              title="Wire up your backend (optional but recommended)"
+              body={
+                <>
+                  <p>
+                    The <code className="rounded bg-[var(--surface)] px-1 py-0.5 font-mono text-xs">onSuccess</code>{" "}
+                    callback fires in the browser, but a determined user could skip it.
+                    For trustworthy fulfillment, listen to the <code className="rounded bg-[var(--surface)] px-1 py-0.5 font-mono text-xs">Payment</code>{" "}
+                    event on-chain from a long-running worker.
+                  </p>
+                  <CodeBlock
+                    language="ts"
+                    code={`import { createPublicClient, http, parseAbiItem } from "viem";
+
+const client = createPublicClient({
+  chain: {
+    id: 5042002,
+    rpcUrls: { default: { http: ["https://rpc.drpc.testnet.arc.network"] } },
+  },
+  transport: http(),
+});
+
+client.watchEvent({
+  address: "${PROCESSOR_ADDRESS}",
+  event: parseAbiItem(
+    "event Payment(address indexed merchant, address indexed payer, address indexed token, uint256 grossAmount, uint256 netAmount, uint256 fee, bytes32 paymentId, bytes32 metadata)"
+  ),
+  args: { merchant: "0xYourWalletAddress" },
+  onLogs: async (logs) => {
+    for (const log of logs) {
+      await fulfillOrder({
+        paymentId: log.args.paymentId,
+        txHash: log.transactionHash,
+        amount: log.args.netAmount,
+      });
+    }
+  },
+});`}
+                  />
+                  <p className="text-sm">
+                    Run this anywhere: Node, Next.js API route, Cloudflare Worker, AWS Lambda,
+                    a tiny VPS. No webhook signing secrets — events are signed by Arc validators.
+                  </p>
+                </>
+              }
+            />
+
+            <Step
+              n="05"
+              title="Test on Arc Testnet"
+              body={
+                <>
+                  <p>Before going live, run an end-to-end test with testnet USDC.</p>
+                  <ol className="mt-3 space-y-2 text-sm leading-relaxed list-decimal list-inside">
+                    <li>Visit <a className="text-[var(--accent)] hover:underline" href="https://faucet.circle.com" target="_blank" rel="noreferrer">faucet.circle.com</a> and request testnet USDC for any wallet</li>
+                    <li>Open your page with the CinchPay button</li>
+                    <li>Click pay → connect the funded wallet → approve → confirm</li>
+                    <li>Watch the funds land in your merchant wallet within a second</li>
+                    <li>Verify your backend received the <code className="font-mono text-xs">Payment</code> event</li>
+                  </ol>
+                  <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--paper)] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[var(--fg)]">
+                      Live demo
+                    </p>
+                    <p className="mt-2 text-sm text-[var(--fg-muted)]">
+                      Try a real testnet purchase right now at{" "}
+                      <a className="text-[var(--accent)] hover:underline" href="/demo">/demo</a>
+                      {" "}— it&apos;s a working store wired to the same script you just installed.
+                    </p>
+                  </div>
+                </>
+              }
+            />
+
+            <Step
+              n="06"
+              title="Go to production"
+              body={
+                <>
+                  <p>
+                    When Arc mainnet launches, deployment is a one-line config change.
+                    Your installation code stays identical.
+                  </p>
+                  <ul className="mt-3 space-y-1.5 text-sm leading-relaxed list-disc list-inside">
+                    <li>Swap the mainnet contract address (we&apos;ll publish it here on launch)</li>
+                    <li>Point your backend listener at the mainnet RPC</li>
+                    <li>Replace your testnet wallet with your production receiving wallet</li>
+                  </ul>
+                  <p className="text-sm">
+                    That&apos;s it. No SDK upgrade, no breaking change, no NPM dependency to audit.
+                  </p>
+                </>
+              }
+            />
+          </Section>
+
           <Section id="script" eyebrow="Path 00 · Recommended" title="Script tag.">
             <p>
               One <code className="rounded bg-[var(--surface)] px-1 py-0.5 font-mono text-xs">&lt;script&gt;</code>{" "}
@@ -189,7 +400,7 @@ export default function Docs() {
             </div>
           </Section>
 
-          <Section id="install" eyebrow="Path 01" title="Payment link.">
+          <Section id="link" eyebrow="Path 01" title="Payment link.">
             <p>Share a hosted checkout URL. Zero code, works in any channel.</p>
             <CodeBlock language="text" code={linkSnippet} />
             <ParamsTable />
@@ -305,12 +516,38 @@ function Section({
 }) {
   return (
     <section id={id} className="mt-12 first:mt-0 scroll-mt-12">
-      <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--fg-muted)]">{eyebrow}</div>
+      <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--fg-muted)] font-semibold">{eyebrow}</div>
       <h2 className="mt-3 editorial-display text-3xl md:text-4xl">{title}</h2>
       <div className="mt-4 space-y-4 text-[15px] leading-relaxed text-[var(--fg-muted)]">
         {children}
       </div>
     </section>
+  );
+}
+
+function Step({ n, title, body }: { n: string; title: string; body: React.ReactNode }) {
+  return (
+    <div className="mt-8 border-l-2 border-[var(--border)] pl-6 hover:border-[var(--accent)] transition-colors">
+      <div className="flex items-baseline gap-3">
+        <span className="font-mono text-[11px] text-[var(--fg-faint)] tracking-widest">{n}</span>
+        <h3 className="text-[18px] font-bold tracking-tight text-[var(--fg)]">{title}</h3>
+      </div>
+      <div className="mt-3 space-y-3 text-[14px] leading-relaxed text-[var(--fg-muted)]">
+        {body}
+      </div>
+    </div>
+  );
+}
+
+function Choice({ label, desc, best }: { label: string; desc: string; best: string }) {
+  return (
+    <div className="rounded-md border border-[var(--border)] bg-[var(--paper)] p-4 hover:border-[var(--border-strong)] transition-colors">
+      <div className="text-[13px] font-bold tracking-tight text-[var(--fg)]">{label}</div>
+      <p className="mt-1 text-[12px] text-[var(--fg-muted)] leading-relaxed">{desc}</p>
+      <p className="mt-2 text-[10px] uppercase tracking-wider text-[var(--accent)] font-semibold">
+        {best}
+      </p>
+    </div>
   );
 }
 
