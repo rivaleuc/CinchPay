@@ -9,10 +9,10 @@ import { newPaymentId, shortAddr } from "@/lib/format";
 import { EXPLORER } from "@/lib/contract";
 
 const ALL_PRODUCTS = [
-  { id: "tee", name: "Essential Tee", variant: "Charcoal · Medium", price: 28, image: "/products/tee.avif" },
-  { id: "trainer", name: "Trainer 01", variant: "Off-white · 42", price: 128, image: "/products/shoe.avif" },
-  { id: "headphones", name: "Studio Headphones", variant: "Over-ear · 30h", price: 349, image: "/products/headphones.webp" },
-  { id: "case", name: "Field Case", variant: "Silicone · MagSafe", price: 24, image: "/products/case.avif" },
+  { id: "tee", name: "Essential Tee", variant: "Charcoal, Medium", price: 28, image: "/products/tee.avif" },
+  { id: "trainer", name: "Trainer 01", variant: "Off-white, 42", price: 128, image: "/products/shoe.avif" },
+  { id: "headphones", name: "Studio Headphones", variant: "Over-ear, 30h", price: 349, image: "/products/headphones.webp" },
+  { id: "case", name: "Field Case", variant: "Silicone, MagSafe", price: 24, image: "/products/case.avif" },
   { id: "carry", name: "Daily Carry", variant: "Modular kit", price: 64, image: "/products/accessory.avif" },
   { id: "whitening", name: "Pearl Whitening", variant: "7-day kit", price: 48, image: "/products/teeth.avif" },
 ];
@@ -88,7 +88,7 @@ export function HeroDemoCard() {
             </span>
           </div>
           <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--accent)]">
-            USDC · Arc
+            USDC on Arc
           </span>
         </div>
 
@@ -180,7 +180,7 @@ export function HeroDemoCard() {
 
         <div className="mt-5 border-t border-[var(--border)] px-5 py-3 text-[11px] text-[var(--fg-muted)] flex items-center justify-between">
           <span className="font-semibold">Powered by CinchPay</span>
-          <span className="font-mono">arc · &lt;1s</span>
+          <span className="font-mono">arc, &lt;1slt;1s on arc</span>
         </div>
       </div>
 

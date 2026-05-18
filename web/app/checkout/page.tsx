@@ -296,7 +296,7 @@ function CheckoutHeader({ merchant, orderId }: { merchant: `0x${string}`; orderI
         <div>
           <div className="text-sm font-medium">Merchant</div>
           <div className="text-[11px] text-[var(--fg-muted)] font-mono">
-            {shortAddr(merchant)} {orderId && `· ${orderId}`}
+            {shortAddr(merchant)} {orderId && `— ${orderId}`}
           </div>
         </div>
       </div>

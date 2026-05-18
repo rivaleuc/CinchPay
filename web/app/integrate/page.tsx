@@ -418,7 +418,7 @@ client.watchEvent({
             />
           </Section>
 
-          <Section id="script" eyebrow="Path 00 · Recommended" title="Script tag.">
+          <Section id="script" eyebrow="Path 00 — Recommended" title="Script tag.">
             <p>
               One <code className="rounded bg-[var(--surface)] px-1 py-0.5 font-mono text-xs">&lt;script&gt;</code>{" "}
               tag, no npm, no bundler. The SDK ships from our origin — you always
@@ -605,7 +605,7 @@ function Tabs({
             {t.label}
             {t.sub && active === t.id && (
               <span className="ml-1.5 text-[10px] font-normal text-[var(--fg-muted)]">
-                · {t.sub}
+                {t.sub}
               </span>
             )}
           </button>

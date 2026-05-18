@@ -8,7 +8,7 @@ export const dynamic = "force-static";
 export const revalidate = 3600; // re-build hourly so origin/contract changes ship
 
 function sdkSource(opts: { origin: string }) {
-  return `/*! CinchPay v1 — MIT licensed · ${opts.origin} */
+  return `/*! CinchPay v1 — MIT licensed at ${opts.origin} */
 (function () {
   if (window.CinchPay && window.CinchPay.__v >= 1) return;
 

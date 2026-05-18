@@ -39,7 +39,7 @@ export function Footer() {
         </div>
         <div className="mt-12 flex flex-col gap-2 border-t border-[var(--border)] pt-6 text-xs text-[var(--fg-muted)] md:flex-row md:justify-between">
           <span>© 2026 CinchPay Labs. Open source, MIT licensed.</span>
-          <span className="font-mono">Settles in &lt;1s on Arc · 1% processor fee</span>
+          <span className="font-mono">Settles in &lt;1s on Arc, 1% processor fee</span>
         </div>
       </div>
     </footer>

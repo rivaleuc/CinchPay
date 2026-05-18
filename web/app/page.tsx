@@ -13,7 +13,7 @@ export default function Landing() {
           <div>
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)] font-semibold">
               <span className="h-px w-8 bg-[var(--border-strong)]" />
-              Version 0.1 · Live on Arc Testnet
+              Version 0.1 — Live on Arc Testnet
             </div>
             <h1 className="display mt-7 text-balance text-[42px] leading-[1.02] md:text-[64px]">
               Stablecoin checkout, refined for the open web.

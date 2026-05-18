@@ -8,7 +8,6 @@ import {
   Check,
   Copy,
   ExternalLink,
-  Sparkles,
   Wallet,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
@@ -21,10 +20,10 @@ type Stack = "html" | "react" | "shopify" | "wordpress";
 type TokenChoice = "USDC" | "EURC";
 
 const STACKS: { id: Stack; label: string; sub: string; lang: string }[] = [
-  { id: "html", label: "HTML", sub: "Webflow · Squarespace · Wix", lang: "html" },
-  { id: "react", label: "React", sub: "Next.js · Vue · SvelteKit", lang: "jsx" },
+  { id: "html", label: "HTML", sub: "Webflow, Squarespace, Wix", lang: "html" },
+  { id: "react", label: "React", sub: "Next.js, Vue, SvelteKit", lang: "jsx" },
   { id: "shopify", label: "Shopify", sub: "Theme Liquid", lang: "liquid" },
-  { id: "wordpress", label: "WordPress", sub: "WooCommerce · PHP", lang: "php" },
+  { id: "wordpress", label: "WordPress", sub: "WooCommerce, PHP", lang: "php" },
 ];
 
 export default function Install() {
@@ -55,17 +54,16 @@ export default function Install() {
     <>
       {/* Hero */}
       <section className="border-b border-[var(--border)]">
-        <div className="mx-auto max-w-5xl px-6 pt-16 pb-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--accent-fg)]">
-            <Sparkles className="h-3 w-3" />
-            Install in 60 seconds
+        <div className="mx-auto max-w-5xl px-6 pt-20 pb-12">
+          <div className="text-xs uppercase tracking-[0.18em] text-[var(--fg-muted)] font-semibold">
+            Quickstart
           </div>
-          <h1 className="display mt-5 text-4xl md:text-5xl text-balance">
-            Add USDC checkout to your site. Right now.
+          <h1 className="display mt-3 text-4xl md:text-5xl text-balance">
+            Add USDC checkout to your site.
           </h1>
-          <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-[var(--fg-muted)]">
-            Connect a wallet. Pick what you&apos;re building with. Copy the snippet.
-            Paste it on any page. You&apos;ll be taking USDC payments in less than a minute.
+          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-[var(--fg-muted)]">
+            Connect a wallet, configure the button, copy the snippet, paste it on any
+            page. The whole thing takes a minute.
           </p>
         </div>
       </section>
@@ -212,7 +210,7 @@ export default function Install() {
           <div className="rounded-xl border border-[var(--border-strong)] bg-[var(--paper)] overflow-hidden">
             <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-2.5">
               <div className="text-[11px] uppercase tracking-wider text-[var(--fg-muted)] font-semibold">
-                Your snippet · {stack}
+                Your snippet, {stack}
               </div>
               <CopyButton text={snippet} />
             </div>
@@ -252,23 +250,21 @@ function StepCard({
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <div className="flex items-center gap-2.5">
-        <span
-          className={cn(
-            "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold transition-colors",
-            done
-              ? "bg-[var(--accent)] text-white"
-              : "bg-[var(--surface)] text-[var(--fg-muted)] border border-[var(--border)]",
-          )}
-        >
-          {done ? <Check className="h-3 w-3" strokeWidth={3} /> : n}
-        </span>
-        <h2 className="text-[17px] font-bold tracking-tight text-[var(--fg)] leading-none">
-          {title}
-        </h2>
-      </div>
-      <div className="mt-3 ml-0 sm:ml-9">{children}</div>
+    <div className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3">
+      <span
+        className={cn(
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[12px] font-bold tabular transition-colors",
+          done
+            ? "bg-[var(--accent)] text-white"
+            : "border border-[var(--border-strong)] bg-[var(--paper)] text-[var(--fg)]",
+        )}
+      >
+        {done ? <Check className="h-4 w-4" strokeWidth={3} /> : parseInt(n, 10)}
+      </span>
+      <h2 className="self-center text-[19px] font-bold tracking-tight text-[var(--fg)] leading-none">
+        {title}
+      </h2>
+      <div className="col-start-2">{children}</div>
     </div>
   );
 }

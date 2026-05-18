@@ -84,7 +84,7 @@ export default function Demo() {
     <>
       <div className="border-b border-[var(--border)] bg-[var(--paper)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3 text-xs text-[var(--fg-muted)]">
-          <span className="uppercase tracking-[0.18em]">Demo shop · powered by CinchPay</span>
+          <span className="uppercase tracking-[0.18em]">Demo shop, powered by CinchPay</span>
           <Link href="/" className="link-grow hover:text-[var(--fg)] transition-colors">
             ← Back to CinchPay
           </Link>
@@ -241,7 +241,7 @@ export default function Demo() {
                 </div>
                 <div className="flex items-baseline justify-between border-t border-[var(--border)] pt-3">
                   <span className="text-xs uppercase tracking-wider text-[var(--fg-muted)]">
-                    Total · USDC
+                    Total, USDC
                   </span>
                   <span className="font-serif text-2xl tabular">${subtotal.toFixed(2)}</span>
                 </div>

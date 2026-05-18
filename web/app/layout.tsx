@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://cinchpay.app"),
   title: {
     default: "CinchPay — Stablecoin checkout for any website",
-    template: "%s · CinchPay",
+    template: "%s — CinchPay",
   },
   description:
     "USDC checkout processor on Arc Network. Drop-in iframe widget, sub-second settlement, 1% fee. Open source and MIT licensed.",

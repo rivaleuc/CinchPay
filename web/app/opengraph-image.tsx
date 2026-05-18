@@ -51,7 +51,7 @@ export default async function OG() {
             }}
           >
             <div style={{ width: 32, height: 1, background: "#b0bccc" }} />
-            Version 0.1 · Live on Arc Testnet
+            Version 0.1 — Live on Arc Testnet
           </div>
           <div
             style={{
@@ -77,8 +77,8 @@ export default async function OG() {
             fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
           }}
         >
-          <span>cinchpay · settles in &lt;1s</span>
-          <span>1.00% processor fee · MIT</span>
+          <span>cinchpay, settles in &lt;1s</span>
+          <span>1.00% processor fee, MIT</span>
         </div>
       </div>
     ),
