@@ -28,7 +28,7 @@ const STACKS: { id: Stack; label: string; sub: string; lang: string }[] = [
 
 export default function Install() {
   const { address, isConnected } = useAccount();
-  const [stack, setStack] = useState<Stack>("html");
+  const [stack, setStack] = useState<Stack>("react");
   const [amount, setAmount] = useState("29.99");
   const [token, setToken] = useState<TokenChoice>("USDC");
   const [label, setLabel] = useState("Pay 29.99 USDC");
