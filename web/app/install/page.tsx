@@ -362,36 +362,38 @@ function buildSnippet({
   }
 
   if (stack === "react") {
-    return `// 1. Add the script once in your root layout (Next.js: app/layout.tsx)
-<script src="https://cinchpay.app/v1.js" async />
+    return `// 1. Install the typed SDK from GitHub (no npm registry)
+//    pnpm add github:rivaleuc/CinchPay#path:packages/sdk
 
-// 2. Use it in any component
+// 2. Drop the button anywhere
 "use client";
+import { CinchPayButton } from "@cinchpay/sdk/react";
 
 export function PayButton() {
-  function pay() {
-    window.CinchPay.open({
-      merchant: "${merchant}",
-      amount: ${amount},
-      token: "${token}",
-      orderId: "${order}",
-      onSuccess: ({ txHash, paymentId }) => {
+  return (
+    <CinchPayButton
+      merchant="${merchant}"
+      amount={${amount}}
+      token="${token}"
+      orderId="${order}"
+      onSuccess={({ txHash, paymentId }) => {
         // Mark the order as paid in your backend
         fetch("/api/orders/fulfill", {
           method: "POST",
           body: JSON.stringify({ paymentId, txHash }),
         });
-      },
-      onClose: () => console.log("Customer cancelled"),
-    });
-  }
-
-  return (
-    <button onClick={pay} className="bg-blue-600 text-white px-5 py-3 rounded-md">
+      }}
+      onClose={() => console.log("Customer cancelled")}
+      className="bg-blue-600 text-white px-5 py-3 rounded-md font-semibold"
+    >
       ${label}
-    </button>
+    </CinchPayButton>
   );
-}`;
+}
+
+// Or use the imperative hook:
+// const cinch = useCinchPay({ merchant, token, onSuccess });
+// <button onClick={() => cinch.open({ amount, orderId })}>Pay</button>`;
   }
 
   if (stack === "shopify") {

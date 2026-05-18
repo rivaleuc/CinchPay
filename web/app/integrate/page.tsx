@@ -181,88 +181,33 @@ export default function Docs() {
 
           <Section id="install" eyebrow="Quickstart" title="Install CinchPay in under 60 seconds.">
             <p className="text-[14px]">
-              Two install paths. <strong className="text-[var(--fg)]">Script tag</strong> for any HTML
-              site, <strong className="text-[var(--fg)]">SDK package</strong> for typed React /
-              TypeScript apps. Both ship from this repo — no npm registry, no version drift.
+              CinchPay ships two install surfaces from this repo — no npm registry, no version drift,
+              audit-friendly. Pick the one that matches your stack and follow the steps below.
             </p>
 
-            <h3 className="mt-8 font-bold text-[15px] tracking-tight text-[var(--fg)]">
-              Option A · Script tag (zero install)
-            </h3>
-            <CodeBlock
-              language="html"
-              code={`<script src="https://cinchpay.app/v1.js"></script>
-
-<button
-  data-cinchpay
-  data-merchant="0xYourWalletAddress"
-  data-amount="29.99"
-  data-token="USDC"
-  data-order-id="ORDER-001"
->
-  Pay 29.99 USDC
-</button>`}
-            />
-
-            <h3 className="mt-10 font-bold text-[15px] tracking-tight text-[var(--fg)]">
-              Option B · TypeScript / React SDK (pnpm)
-            </h3>
-            <p className="text-[14px]">
-              Installed straight from GitHub — pin to a commit or tag, audit the source,
-              never trust an npm registry version you didn&apos;t check.
-            </p>
-            <CodeBlock
-              language="bash"
-              code={`# pnpm (recommended)
-pnpm add github:rivaleuc/CinchPay#path:packages/sdk
-
-# or npm / yarn / bun
-npm install github:rivaleuc/CinchPay#path:packages/sdk
-yarn add github:rivaleuc/CinchPay#path:packages/sdk
-bun add github:rivaleuc/CinchPay#path:packages/sdk`}
-            />
-
-            <p className="text-[14px] mt-4">Use it in React:</p>
-            <CodeBlock
-              language="tsx"
-              code={`import { CinchPayButton } from "@cinchpay/sdk/react";
-
-<CinchPayButton
-  merchant="0xYourWalletAddress"
-  amount={29.99}
-  token="USDC"
-  orderId="ORDER-001"
-  onSuccess={({ txHash, paymentId }) => fulfill(paymentId, txHash)}
-  className="bg-blue-600 text-white px-5 py-3 rounded-md"
->
-  Pay 29.99 USDC
-</CinchPayButton>`}
-            />
-
-            <p className="text-[14px] mt-4">Or use the imperative API:</p>
-            <CodeBlock
-              language="ts"
-              code={`import { CinchPay } from "@cinchpay/sdk";
-
-CinchPay.open({
-  merchant: "0xYourWalletAddress",
-  amount: 29.99,
-  token: "USDC",
-  orderId: "ORDER-001",
-  onSuccess: ({ txHash, paymentId }) => fulfill(paymentId, txHash),
-  onClose: () => console.log("cancelled"),
-});`}
-            />
-
-            <hr className="my-10 border-[var(--border)]" />
-
-            <h3 className="font-bold text-[15px] tracking-tight text-[var(--fg)]">
-              The rest of the install flow
-            </h3>
-            <p>
-              CinchPay is a static script — no npm package, no SDK install, no bundler config.
-              Your customers pay USDC on Arc Network, you receive funds directly in your wallet.
-            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-md border border-[var(--border)] bg-[var(--paper)] p-4">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--fg-muted)] font-bold">
+                  Install method 01
+                </div>
+                <div className="mt-1 font-bold tracking-tight text-[var(--fg)]">Script tag</div>
+                <p className="mt-1 text-[12px] text-[var(--fg-muted)] leading-relaxed">
+                  One <code className="font-mono text-xs">&lt;script&gt;</code> from{" "}
+                  <code className="font-mono text-xs">cinchpay.app/v1.js</code>. Zero install, zero
+                  bundler. Best for HTML / Shopify / WordPress / Webflow.
+                </p>
+              </div>
+              <div className="rounded-md border border-[var(--border)] bg-[var(--paper)] p-4">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--fg-muted)] font-bold">
+                  Install method 02
+                </div>
+                <div className="mt-1 font-bold tracking-tight text-[var(--fg)]">@cinchpay/sdk (pnpm)</div>
+                <p className="mt-1 text-[12px] text-[var(--fg-muted)] leading-relaxed">
+                  Typed React component + hook, installed straight from GitHub. Best for
+                  React / Next.js / TypeScript apps that want autocomplete.
+                </p>
+              </div>
+            </div>
 
             <Step
               n="01"
@@ -284,47 +229,37 @@ CinchPay.open({
 
             <Step
               n="02"
-              title="Add the script"
-              body={
-                <>
-                  <p>
-                    Drop this single tag into any HTML page — works on Shopify, WordPress,
-                    Webflow, Next.js, vanilla HTML, anywhere.
-                  </p>
-                  <CodeBlock
-                    language="html"
-                    code={`<script src="https://cinchpay.app/v1.js"></script>`}
-                  />
-                </>
-              }
-            />
-
-            <Step
-              n="03"
-              title="Pick how customers pay"
+              title="Drop in a button"
               body={
                 <>
                   <p>Three patterns. Pick the one that fits your stack.</p>
 
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     <Choice
-                      label="A — Zero JavaScript"
-                      desc="Add data attributes to any button. The script auto-binds clicks."
-                      best="Best for: Shopify, WordPress, no-code sites"
+                      label="A — Zero JS"
+                      desc="Data attributes on any button. The script auto-binds clicks."
+                      best="Shopify · WordPress · no-code"
                     />
                     <Choice
                       label="B — Programmatic"
-                      desc="Call CinchPay.open() in your own JS with onSuccess / onClose callbacks."
-                      best="Best for: React, Vue, Next.js apps"
+                      desc="Call CinchPay.open() from your own JS with callbacks."
+                      best="Static sites · vanilla JS"
+                    />
+                    <Choice
+                      label="C — Typed SDK"
+                      desc="Import a React component or hook from @cinchpay/sdk."
+                      best="React · Next.js · Vue · TS"
                     />
                   </div>
 
-                  <p className="mt-4 text-[13px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
-                    A · Data-attribute button
+                  <p className="mt-6 text-[13px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
+                    A · Data-attribute button (with script tag)
                   </p>
                   <CodeBlock
                     language="html"
-                    code={`<button
+                    code={`<script src="https://cinchpay.app/v1.js"></script>
+
+<button
   data-cinchpay
   data-merchant="0xYourWalletAddress"
   data-amount="29.99"
@@ -336,7 +271,7 @@ CinchPay.open({
                   />
 
                   <p className="mt-6 text-[13px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
-                    B · Programmatic open
+                    B · Programmatic open (with script tag)
                   </p>
                   <CodeBlock
                     language="js"
@@ -347,22 +282,48 @@ CinchPay.open({
     token: "USDC",
     orderId: "ORDER-001",
     onSuccess: ({ txHash, paymentId }) => {
-      // Mark the order as paid in your backend
       fetch("/api/orders/fulfill", {
         method: "POST",
         body: JSON.stringify({ paymentId, txHash }),
       });
     },
-    onClose: () => console.log("Customer cancelled"),
   });
 });`}
+                  />
+
+                  <p className="mt-6 text-[13px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">
+                    C · Typed SDK (React)
+                  </p>
+                  <CodeBlock
+                    language="bash"
+                    code={`pnpm add github:rivaleuc/CinchPay#path:packages/sdk`}
+                  />
+                  <CodeBlock
+                    language="tsx"
+                    code={`"use client";
+import { CinchPayButton } from "@cinchpay/sdk/react";
+
+export function Buy() {
+  return (
+    <CinchPayButton
+      merchant="0xYourWalletAddress"
+      amount={29.99}
+      token="USDC"
+      orderId="ORDER-001"
+      onSuccess={({ txHash, paymentId }) => fulfill(paymentId, txHash)}
+      className="bg-blue-600 text-white px-5 py-3 rounded-md font-semibold"
+    >
+      Pay 29.99 USDC
+    </CinchPayButton>
+  );
+}`}
                   />
                 </>
               }
             />
 
             <Step
-              n="04"
+              n="03"
               title="Wire up your backend (optional but recommended)"
               body={
                 <>
@@ -410,7 +371,7 @@ client.watchEvent({
             />
 
             <Step
-              n="05"
+              n="04"
               title="Test on Arc Testnet"
               body={
                 <>
@@ -437,7 +398,7 @@ client.watchEvent({
             />
 
             <Step
-              n="06"
+              n="05"
               title="Go to production"
               body={
                 <>
