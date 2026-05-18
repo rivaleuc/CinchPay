@@ -130,19 +130,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonial */}
-      <section className="border-t border-[var(--border)]">
-        <div className="mx-auto max-w-4xl px-6 py-32 text-center">
-          <p className="display text-balance text-3xl md:text-4xl">
-            &ldquo;Card rails were never designed for software. CinchPay is what
-            checkout looks like when the protocol settles in milliseconds.&rdquo;
-          </p>
-          <div className="mt-10 text-sm text-[var(--fg-muted)] font-medium">
-            Anya Mitchell · Founder, Form Studio
-          </div>
-        </div>
-      </section>
-
       <Footer />
     </>
   );
