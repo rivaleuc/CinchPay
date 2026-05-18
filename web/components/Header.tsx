@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/cn";
 
 const NAV = [
+  { href: "/install", label: "Install" },
   { href: "/demo", label: "Demo" },
   { href: "/integrate", label: "Docs" },
   { href: "/m", label: "Dashboard" },
