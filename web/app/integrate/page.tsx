@@ -1,11 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Check, Copy, ExternalLink } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { EXPLORER, PROCESSOR_ADDRESS } from "@/lib/contract";
 
-const sections = [
+type NavItem = {
+  id: string;
+  label: string;
+  primary?: boolean;
+  external?: string; // if set, link to this href instead of anchor
+};
+
+const sections: NavItem[] = [
+  { id: "home", label: "Home", external: "/" },
   { id: "intro", label: "Introduction" },
   { id: "install", label: "Install", primary: true },
   { id: "script", label: "Script tag" },
@@ -127,25 +136,51 @@ export default function Docs() {
             Documentation
           </div>
           <nav className="mt-4 space-y-1.5 text-sm">
-            {sections.map((s) => (
-              <a
-                key={s.id}
-                href={`#${s.id}`}
-                className={
-                  "block transition-colors " +
-                  (s.primary
-                    ? "font-bold text-[var(--accent)] hover:text-[var(--accent-fg)]"
-                    : "text-[var(--fg-muted)] hover:text-[var(--fg)]")
-                }
-              >
-                {s.label}
-                {s.primary && (
-                  <span className="ml-1.5 inline-block rounded border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--accent-fg)]">
-                    Start here
-                  </span>
-                )}
-              </a>
-            ))}
+            {sections.map((s) => {
+              const className =
+                "flex items-center gap-1.5 transition-colors " +
+                (s.primary
+                  ? "font-bold text-[var(--accent)] hover:text-[var(--accent-fg)]"
+                  : s.external
+                    ? "text-[var(--fg)] font-semibold hover:text-[var(--accent)]"
+                    : "text-[var(--fg-muted)] hover:text-[var(--fg)]");
+
+              const content = (
+                <>
+                  {s.external && (
+                    <svg
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden
+                    >
+                      <path d="M15 18l-6-6 6-6" />
+                    </svg>
+                  )}
+                  <span>{s.label}</span>
+                  {s.primary && (
+                    <span className="ml-1 inline-block rounded border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--accent-fg)]">
+                      Start here
+                    </span>
+                  )}
+                </>
+              );
+
+              return s.external ? (
+                <Link key={s.id} href={s.external} className={className}>
+                  {content}
+                </Link>
+              ) : (
+                <a key={s.id} href={`#${s.id}`} className={className}>
+                  {content}
+                </a>
+              );
+            })}
           </nav>
           <div className="mt-10 rounded-md border border-[var(--border)] bg-[var(--paper)] p-4">
             <div className="text-[11px] uppercase tracking-wider text-[var(--fg-muted)]">

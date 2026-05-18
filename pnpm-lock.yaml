@@ -15,7 +15,7 @@ importers:
         version: 19.2.14
       react:
         specifier: ^19.0.0
-        version: 19.2.4
+        version: 19.2.6
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
@@ -28,8 +28,8 @@ packages:
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
-  react@19.2.4:
-    resolution: {integrity: sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==}
+  react@19.2.6:
+    resolution: {integrity: sha512-sfWGGfavi0xr8Pg0sVsyHMAOziVYKgPLNrS7ig+ivMNb3wbCBw3KxtflsGBAwD3gYQlE/AEZsTLgToRrSCjb0Q==}
     engines: {node: '>=0.10.0'}
 
   typescript@5.9.3:
@@ -45,6 +45,6 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  react@19.2.4: {}
+  react@19.2.6: {}
 
   typescript@5.9.3: {}
