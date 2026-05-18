@@ -102,7 +102,7 @@ export function HeroDemoCard() {
             I&apos;m refreshing my wardrobe. Can you recommend cozy basics in size M?
           </ChatBubble>
           <ChatBubble side="me">
-            Two essentials below. Pay in USDC — settles in under a second.
+            Two essentials below. Pay in USDC, settles in under a second.
           </ChatBubble>
         </div>
 
