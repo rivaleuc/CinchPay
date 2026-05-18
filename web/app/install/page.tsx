@@ -214,7 +214,7 @@ export default function Install() {
               </div>
               <CopyButton text={snippet} />
             </div>
-            <pre className="overflow-x-auto p-4 font-mono text-[12px] leading-[1.65] text-[var(--fg)] max-h-[420px]">
+            <pre className="overflow-auto p-4 font-mono text-[12px] leading-[1.65] text-[var(--fg)] h-[460px]">
               <code>{snippet}</code>
             </pre>
           </div>
