@@ -26,7 +26,7 @@ Settlement is final at block inclusion, not three to seven business days later. 
 
 ## Live
 
-Frontend: [cinchpay.app](https://cinchpay.app)
+Frontend: [cinchpay.app](https://cinchpay.xyz)
 Processor contract on Arc Testnet: [`0xD4aBC1dbc1Bfa47B702a3F23Ec6f6EBF89D80A36`](https://testnet.arcscan.app/address/0xD4aBC1dbc1Bfa47B702a3F23Ec6f6EBF89D80A36)
 
 ## License
