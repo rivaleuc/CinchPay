@@ -1,93 +1,34 @@
 # CinchPay
 
-Stablecoin checkout for any site, built on [Arc Network](https://arc.network).
+Stablecoin checkout, the way it should feel.
 
-Drop in an iframe, link, or modal. Receive USDC directly in your wallet with sub-second settlement.
+CinchPay turns any wallet address into a merchant account. Customers pay in USDC or EURC, settle in under a second on [Arc Network](https://arc.network), and the funds land directly in the merchant's wallet. No custody, no chargebacks, no payout schedule, no rolling reserves.
 
-## Stack
+## Why it exists
 
-- **Contracts** — Solidity 0.8.30, OpenZeppelin, Foundry
-- **Frontend** — Next.js 16, Wagmi v2, Viem, RainbowKit, Tailwind v4
-- **Network** — Arc Testnet (chain id `5042002`)
+Card processors are built for an internet that no longer fits. A small business in Casablanca selling to a customer in Berlin pays three percent, waits a week for the money, and lives with the threat of a chargeback for another ninety days. Crypto payments solve all of that on paper but in practice the UX is terrible, the wallets are confusing, and there is no clean way to wire it into a normal website.
 
-## Layout
+CinchPay closes that gap. The checkout looks and feels like Stripe. The settlement is final the moment the transaction confirms. The merchant integration is a single button or one line of HTML.
 
-```
-contracts/   Solidity contracts + Foundry tests
-web/         Next.js dApp (landing, checkout, demo, dashboard, docs)
-```
+## What it does
 
-## Contract
+Accept USDC and EURC on Arc. Funds move wallet to wallet through an audited processor contract that records every payment onchain with the merchant, amount, token, order id, and optional metadata. Merchants get a hosted checkout, a dashboard that reads payments straight from the chain, refund tooling, and a webhook signed against onchain events for backend fulfillment.
 
-Deployed on Arc Testnet:
+The whole thing runs without a database. Every payment is its own onchain record, which means the dashboard, the receipts, and the dispute history are all reproducible from the chain alone. If CinchPay disappears tomorrow, the merchant still has every payment they ever received, verifiable by anyone.
 
-```
-CinchPayProcessor: 0xD4aBC1dbc1Bfa47B702a3F23Ec6f6EBF89D80A36
-```
+## Who it is for
 
-[View on ArcScan](https://testnet.arcscan.app/address/0xD4aBC1dbc1Bfa47B702a3F23Ec6f6EBF89D80A36)
+Anyone with a wallet and something to sell. Indie creators, Shopify stores selling globally, SaaS founders who want to skip Stripe's underwriting, marketplaces that need instant payouts to sellers, agencies billing international clients in stable value, and any business operating in a country where traditional rails are slow, expensive, or unavailable.
 
-## Develop
+## What makes it different
 
-### Contracts
+Settlement is final at block inclusion, not three to seven business days later. There is no merchant account to apply for, the wallet address is the account. Fees are a flat protocol fee, no interchange, no monthly minimum, no statement charges. The integration surface is a single script tag, a typed React component, or a hosted link, so it works on Webflow, Shopify, WordPress, or a hand rolled Next.js app with identical effort. The dashboard is real time because it reads the chain directly, not a delayed batch of webhooks.
 
-```bash
-cd contracts
-forge install
-forge test
-```
+## Live
 
-### Frontend
-
-```bash
-cd web
-cp .env.local.example .env.local
-npm install
-npm run dev
-```
-
-Open http://localhost:3000.
-
-## Deploy contract
-
-```bash
-cd contracts
-export PRIVATE_KEY=0x...
-forge script script/Deploy.s.sol \
-  --rpc-url https://rpc.drpc.testnet.arc.network \
-  --broadcast --slow
-```
-
-## Integration
-
-Three integration paths — see `/integrate` on the running app.
-
-### Payment link
-
-```
-https://cinchpay.app/checkout?merchant=0xYourWallet&amount=29.99&token=USDC&orderId=ORD_001
-```
-
-### Embed iframe
-
-```html
-<iframe
-  src="https://cinchpay.app/checkout?merchant=0xYourWallet&amount=29.99&token=USDC"
-  width="420" height="640"
-  style="border:0;border-radius:16px;">
-</iframe>
-```
-
-### Modal with callbacks
-
-```js
-window.addEventListener("message", (e) => {
-  if (e.data?.type === "cinchpay:success") {
-    fulfillOrder(e.data.payload.orderId);
-  }
-});
-```
+Frontend: [cinchpay.app](https://cinchpay.app)
+Processor contract on Arc Testnet: [`0xD4aBC1dbc1Bfa47B702a3F23Ec6f6EBF89D80A36`](https://testnet.arcscan.app/address/0xD4aBC1dbc1Bfa47B702a3F23Ec6f6EBF89D80A36)
 
 ## License
 
-MIT
+MIT.
