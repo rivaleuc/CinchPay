@@ -71,7 +71,7 @@ export default function Install() {
       {/* Wizard */}
       <section className="mx-auto max-w-5xl px-6 py-10 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
         {/* LEFT — config */}
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           {/* Step 1: Connect */}
           <StepCard n="01" title="Connect your wallet" done={isConnected}>
             {isConnected ? (
@@ -179,7 +179,7 @@ export default function Install() {
         </div>
 
         {/* RIGHT — preview + snippet */}
-        <aside className="lg:sticky lg:top-8 lg:self-start space-y-6">
+        <aside className="lg:sticky lg:top-8 lg:self-start space-y-6 min-w-0">
           {/* Live preview */}
           <div className="rounded-xl border border-[var(--border-strong)] bg-[var(--paper)] p-5">
             <div className="text-[11px] uppercase tracking-wider text-[var(--fg-muted)] font-semibold">
@@ -214,8 +214,8 @@ export default function Install() {
               </div>
               <CopyButton text={snippet} />
             </div>
-            <pre className="overflow-auto p-4 font-mono text-[12px] leading-[1.65] text-[var(--fg)] h-[460px]">
-              <code>{snippet}</code>
+            <pre className="overflow-auto p-4 font-mono text-[12px] leading-[1.65] text-[var(--fg)] h-[460px] w-full max-w-full whitespace-pre">
+              <code className="block min-w-max">{snippet}</code>
             </pre>
           </div>
 

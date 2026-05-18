@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { isAddress, parseUnits } from "viem";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
@@ -45,6 +45,7 @@ export default function Page() {
 
 function Checkout() {
   const params = useSearchParams();
+  const router = useRouter();
   const merchant = (params.get("merchant") || params.get("to")) as `0x${string}` | null;
   const amountStr = params.get("amount") || "";
   const tokenParam = (params.get("token") || params.get("currency") || "USDC").toUpperCase() as TokenKey;
@@ -208,10 +209,21 @@ function Checkout() {
   }
 
   function handleCancel() {
-    if (typeof window !== "undefined" && window.parent !== window) {
+    const inIframe = typeof window !== "undefined" && window.parent !== window;
+    if (inIframe) {
       window.parent.postMessage({ type: "cinchpay:close", payload: { paymentId } }, "*");
     }
-    if (cancelUrl) window.location.href = cancelUrl;
+    if (cancelUrl) {
+      window.location.href = cancelUrl;
+      return;
+    }
+    if (inIframe) return;
+    // Fallback: go back if there's history, otherwise home.
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
   }
 
   if (!valid) return <Invalid merchant={merchant} amountStr={amountStr} />;
