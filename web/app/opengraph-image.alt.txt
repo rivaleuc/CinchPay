@@ -1,0 +1,1 @@
+CinchPay — Stablecoin checkout for any website. USDC checkout processor on Arc, settles in under a second.
