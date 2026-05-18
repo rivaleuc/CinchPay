@@ -102,34 +102,57 @@ export function HeroDemoCard() {
           </ChatBubble>
         </div>
 
-        {/* Product cards — auto-rotating pair */}
+        {/* Product cards — auto-rotating pair with cross-fade */}
         <div className="mx-5 mt-5 rounded-xl border border-[var(--border)] bg-[var(--paper)] p-3">
-          <div key={pairIdx} className="grid grid-cols-2 gap-3 fade-in">
-            {products.map((p) => (
-              <article
-                key={`${pairIdx}-${p.id}`}
-                className="group rounded-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden transition-colors hover:border-[var(--border-strong)]"
-              >
-                <div className="relative aspect-square overflow-hidden bg-[var(--surface)]">
-                  <Image
-                    src={p.image}
-                    alt={p.name}
-                    fill
-                    sizes="(max-width: 768px) 50vw, 200px"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
-                  />
+          <div className="relative">
+            {/* Invisible ghost holds the height; all real pairs are absolute overlays */}
+            <div className="grid grid-cols-2 gap-3 invisible">
+              <ProductSkeleton />
+              <ProductSkeleton />
+            </div>
+
+            {PAIRS.map((pair, idx) => {
+              const pairProducts = pair.map((i) => ALL_PRODUCTS[i]);
+              const visible = idx === pairIdx;
+              return (
+                <div
+                  key={idx}
+                  aria-hidden={!visible}
+                  className="absolute inset-0 grid grid-cols-2 gap-3 transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+                  style={{
+                    opacity: visible ? 1 : 0,
+                    transform: visible ? "scale(1)" : "scale(0.985)",
+                    pointerEvents: visible ? "auto" : "none",
+                  }}
+                >
+                  {pairProducts.map((p) => (
+                    <article
+                      key={p.id}
+                      className="group rounded-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden transition-colors hover:border-[var(--border-strong)]"
+                    >
+                      <div className="relative aspect-square overflow-hidden bg-[var(--surface)]">
+                        <Image
+                          src={p.image}
+                          alt={p.name}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 200px"
+                          className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+                        />
+                      </div>
+                      <div className="p-3">
+                        <div className="text-[13px] font-bold tracking-tight text-[var(--fg)] truncate">
+                          {p.name}
+                        </div>
+                        <div className="text-[11px] text-[var(--fg-muted)] truncate">{p.variant}</div>
+                        <div className="mt-1.5 font-bold tabular text-[var(--fg)]">
+                          ${p.price.toFixed(2)}
+                        </div>
+                      </div>
+                    </article>
+                  ))}
                 </div>
-                <div className="p-3">
-                  <div className="text-[13px] font-bold tracking-tight text-[var(--fg)] truncate">
-                    {p.name}
-                  </div>
-                  <div className="text-[11px] text-[var(--fg-muted)] truncate">{p.variant}</div>
-                  <div className="mt-1.5 font-bold tabular text-[var(--fg)]">
-                    ${p.price.toFixed(2)}
-                  </div>
-                </div>
-              </article>
-            ))}
+              );
+            })}
           </div>
 
           {/* Pagination dots */}
@@ -195,6 +218,19 @@ export function HeroDemoCard() {
       )}
       {paid && <PaidModal total={paid.total} txHash={paid.txHash} onClose={() => setPaid(null)} />}
     </div>
+  );
+}
+
+function ProductSkeleton() {
+  return (
+    <article className="rounded-lg border border-[var(--border)] overflow-hidden">
+      <div className="aspect-square" />
+      <div className="p-3">
+        <div className="text-[13px] font-bold">—</div>
+        <div className="text-[11px]">—</div>
+        <div className="mt-1.5 font-bold">—</div>
+      </div>
+    </article>
   );
 }
 
