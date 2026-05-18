@@ -16,14 +16,16 @@ const ALL_PRODUCTS = [
   { id: "carry", name: "Daily Carry", variant: "Modular kit", price: 64, image: "/products/accessory.avif" },
   { id: "whitening", name: "Pearl Whitening", variant: "7-day kit", price: 48, image: "/products/teeth.avif" },
   { id: "print", name: "Print Tee", variant: "Cotton blend, Large", price: 34, image: "/products/tshirt.jpg" },
+  { id: "airforce", name: "Air Force 1", variant: "Triple white, 43", price: 119, image: "/products/airforce.avif" },
 ];
 
-// 4 curated pairs, rotated every 2s
+// 5 curated pairs, rotated every 2s
 const PAIRS: [number, number][] = [
   [0, 1], // tee + trainer
   [2, 3], // headphones + case
   [4, 5], // carry + whitening
-  [6, 1], // print tee + trainer
+  [6, 7], // print tee + air force
+  [7, 2], // air force + headphones
 ];
 
 const ROTATE_MS = 2000;
