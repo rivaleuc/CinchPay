@@ -219,6 +219,9 @@ export default function Install() {
             </pre>
           </div>
 
+          {/* Where to paste */}
+          <WhereToPaste stack={stack} />
+
           {/* What's next */}
           <div className="rounded-xl border border-[var(--border)] bg-[var(--paper)] p-5 text-sm space-y-2.5">
             <div className="text-[11px] uppercase tracking-wider text-[var(--fg-muted)] font-semibold">
@@ -233,6 +236,120 @@ export default function Install() {
 
       <Footer />
     </>
+  );
+}
+
+// ─── where to paste ─────────────────────────────────────────────────────
+
+const PASTE_GUIDE: Record<Stack, { title: string; steps: { label: string; detail: string }[] }> = {
+  html: {
+    title: "Where to paste this",
+    steps: [
+      {
+        label: "Open the page that should have a Pay button",
+        detail:
+          "In Webflow this is the page Designer. In Squarespace and Wix, edit the page and add a Code / Embed block. In a raw HTML site, open the .html file in your editor.",
+      },
+      {
+        label: "Paste the snippet where you want the button to appear",
+        detail:
+          "The <script src=\"...v1.js\"> tag can go anywhere on the page — top, bottom, or inside the embed block. The <button> tag must sit where you want the button rendered.",
+      },
+      {
+        label: "Publish",
+        detail:
+          "Save and republish. The button binds itself on page load, no extra setup required.",
+      },
+    ],
+  },
+  react: {
+    title: "Where to paste this",
+    steps: [
+      {
+        label: "Install the SDK",
+        detail:
+          "Run pnpm add github:rivaleuc/CinchPay#path:packages/sdk in your project root. Works with pnpm, npm, and yarn. No npm registry account needed.",
+      },
+      {
+        label: "Drop the component into any page or component file",
+        detail:
+          "Next.js App Router: paste it inside a client component (file starting with \"use client\"). Pages Router, Vue, SvelteKit: paste inside the file that renders your product or checkout page.",
+      },
+      {
+        label: "Wire onSuccess to your fulfillment endpoint",
+        detail:
+          "The onSuccess callback receives { paymentId, txHash }. POST those to your backend so you can mark the order as paid before shipping.",
+      },
+    ],
+  },
+  shopify: {
+    title: "Where to paste this",
+    steps: [
+      {
+        label: "Open your theme code",
+        detail:
+          "Shopify Admin → Online Store → Themes → click ⋯ next to your current theme → Edit code.",
+      },
+      {
+        label: "Pick the right Liquid file",
+        detail:
+          "For a button on every product page, open sections/main-product.liquid (or templates/product.liquid on older themes). For cart, open sections/main-cart-footer.liquid. Paste the snippet near the existing add-to-cart button.",
+      },
+      {
+        label: "Save and preview",
+        detail:
+          "Hit Save. Open any product page on your store — the button reads {{ product.price }} and {{ product.id }} from the Liquid context automatically.",
+      },
+    ],
+  },
+  wordpress: {
+    title: "Where to paste this",
+    steps: [
+      {
+        label: "Open functions.php in your active theme (or a child theme)",
+        detail:
+          "WordPress Admin → Appearance → Theme File Editor → functions.php. Better: use a child theme or a custom plugin so updates do not wipe it.",
+      },
+      {
+        label: "Paste at the bottom of the file",
+        detail:
+          "The snippet hooks into woocommerce_after_add_to_cart_button — it renders the button right under WooCommerce's existing Add to cart on every product page.",
+      },
+      {
+        label: "Save the file",
+        detail:
+          "Click Update File. Refresh any product page on your storefront. The CinchPay button now appears under Add to cart, with the price and product id pulled live from WooCommerce.",
+      },
+    ],
+  },
+};
+
+function WhereToPaste({ stack }: { stack: Stack }) {
+  const guide = PASTE_GUIDE[stack];
+  return (
+    <div className="rounded-xl border border-[var(--border-strong)] bg-[var(--paper)] p-5">
+      <div className="flex items-center gap-2">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[10px] font-bold text-[var(--accent-fg)]">
+          ?
+        </span>
+        <div className="text-[11px] uppercase tracking-wider text-[var(--fg-muted)] font-semibold">
+          {guide.title}
+        </div>
+      </div>
+      <ol className="mt-4 space-y-3.5">
+        {guide.steps.map((s, i) => (
+          <li key={i} className="grid grid-cols-[auto_1fr] gap-x-3">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--bg)] text-[10px] font-bold tabular text-[var(--fg)]">
+              {i + 1}
+            </span>
+            <div>
+              <div className="text-[13px] font-bold text-[var(--fg)] leading-snug">{s.label}</div>
+              <p className="mt-1 text-[12px] leading-relaxed text-[var(--fg-muted)]">{s.detail}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
