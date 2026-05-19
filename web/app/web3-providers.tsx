@@ -5,6 +5,7 @@ import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 import { wagmiConfig } from "@/lib/wagmi";
+import { arcTestnet } from "@/lib/chain";
 import { Toaster } from "sonner";
 import { useState } from "react";
 
@@ -14,7 +15,7 @@ export function Web3Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={darkTheme()} modalSize="compact">
+        <RainbowKitProvider theme={darkTheme()} modalSize="compact" initialChain={arcTestnet}>
           {children}
           <Toaster position="top-right" theme="dark" richColors />
         </RainbowKitProvider>
