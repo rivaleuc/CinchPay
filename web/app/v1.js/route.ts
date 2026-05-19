@@ -1,6 +1,6 @@
 // Serves /v1.js — the self-hosted CinchPay browser SDK.
 // Pinned to the host's origin (no npm, no version drift, no registry trust).
-// Loaded with <script src="https://cinchpay.app/v1.js"></script>
+// Loaded with <script src="https://cinchpay.xyz/v1.js"></script>
 
 import { NextResponse } from "next/server";
 

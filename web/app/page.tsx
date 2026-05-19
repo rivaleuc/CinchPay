@@ -119,7 +119,7 @@ export default function Landing() {
             </div>
             <pre className="overflow-x-auto p-6 font-mono text-[13px] leading-relaxed text-[var(--fg)]">
 {`<iframe
-  src="https://cinchpay.app/checkout
+  src="https://cinchpay.xyz/checkout
     ?merchant=0x8a3f...c21d
     &amount=49.00
     &token=USDC"

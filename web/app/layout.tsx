@@ -4,7 +4,7 @@ import { Providers } from "./providers";
 import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cinchpay.app"),
+  metadataBase: new URL("https://cinchpay.xyz"),
   title: {
     default: "CinchPay — Stablecoin checkout for any website",
     template: "%s — CinchPay",

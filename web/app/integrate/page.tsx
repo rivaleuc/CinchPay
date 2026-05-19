@@ -25,8 +25,8 @@ const sections: NavItem[] = [
   { id: "contract", label: "Contract" },
 ];
 
-const scriptSnippet = `<!-- 1. Load the SDK from cinchpay.app (no npm, no version drift) -->
-<script src="https://cinchpay.app/v1.js"></script>
+const scriptSnippet = `<!-- 1. Load the SDK from cinchpay.xyz (no npm, no version drift) -->
+<script src="https://cinchpay.xyz/v1.js"></script>
 
 <!-- 2a. Data-attribute mode — zero JavaScript -->
 <button
@@ -58,10 +58,10 @@ const scriptSnippet = `<!-- 1. Load the SDK from cinchpay.app (no npm, no versio
   });
 </script>`;
 
-const linkSnippet = `https://cinchpay.app/checkout?merchant=0xD140...0164&amount=29.99&token=USDC&orderId=ORD_8f2a&returnUrl=https://yoursite.com/thanks`;
+const linkSnippet = `https://cinchpay.xyz/checkout?merchant=0xD140...0164&amount=29.99&token=USDC&orderId=ORD_8f2a&returnUrl=https://yoursite.com/thanks`;
 
 const iframeSnippet = `<iframe
-  src="https://cinchpay.app/checkout?merchant=0xD140...&amount=29.99&token=USDC"
+  src="https://cinchpay.xyz/checkout?merchant=0xD140...&amount=29.99&token=USDC"
   width="420"
   height="640"
   style="border:0;border-radius:16px;"
@@ -69,7 +69,7 @@ const iframeSnippet = `<iframe
 
 const jsSnippet = `// Listen for events from the CinchPay checkout iframe
 window.addEventListener("message", (event) => {
-  if (event.origin !== "https://cinchpay.app") return;
+  if (event.origin !== "https://cinchpay.xyz") return;
 
   const { type, payload } = event.data;
 
@@ -195,7 +195,7 @@ export default function Docs() {
                 <div className="mt-1 font-bold tracking-tight text-[var(--fg)]">Script tag</div>
                 <p className="mt-1 text-[12px] text-[var(--fg-muted)] leading-relaxed">
                   One <code className="font-mono text-xs">&lt;script&gt;</code> from{" "}
-                  <code className="font-mono text-xs">cinchpay.app/v1.js</code>. Zero install, zero
+                  <code className="font-mono text-xs">cinchpay.xyz/v1.js</code>. Zero install, zero
                   bundler. Best for HTML / Shopify / WordPress / Webflow.
                 </p>
               </div>
@@ -248,7 +248,7 @@ export default function Docs() {
                           content: (
                             <NakedCode
                               language="html"
-                              code={`<script src="https://cinchpay.app/v1.js"></script>
+                              code={`<script src="https://cinchpay.xyz/v1.js"></script>
 
 <button
   data-cinchpay

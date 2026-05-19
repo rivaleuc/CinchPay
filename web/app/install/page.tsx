@@ -342,7 +342,7 @@ function buildSnippet({
 
   if (stack === "html") {
     return `<!-- 1. Load the CinchPay script anywhere in your page -->
-<script src="https://cinchpay.app/v1.js"></script>
+<script src="https://cinchpay.xyz/v1.js"></script>
 
 <!-- 2. Drop in a button — data-attributes are auto-bound -->
 <button
@@ -398,7 +398,7 @@ export function PayButton() {
   Pulls product price + ID automatically from the Liquid context.
 {%- endcomment -%}
 
-<script src="https://cinchpay.app/v1.js"></script>
+<script src="https://cinchpay.xyz/v1.js"></script>
 
 <button
   data-cinchpay
@@ -425,7 +425,7 @@ add_action( 'woocommerce_after_add_to_cart_button', function() {
     $amount   = $product->get_price();
     $order_id = $product->get_id() . '-' . time();
     ?>
-    <script src="https://cinchpay.app/v1.js"></script>
+    <script src="https://cinchpay.xyz/v1.js"></script>
     <button
       data-cinchpay
       data-merchant="<?php echo esc_attr( $merchant ); ?>"
